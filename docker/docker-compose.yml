@@ -1,0 +1,21 @@
+version: "3"
+services:
+  tma-postgres:
+    image: postgres
+    volumes:
+      - postgres_vol:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  label-manager:
+    build: ../label-manager
+    command: python manage.py runserver 0.0.0.0:8000
+    # volumes:
+      # - ../data/backup:/home/ias/backup
+    ports:
+      - 8001:8000
+    depends_on:
+      - tma-postgres
+volumes:
+  postgres_vol:
