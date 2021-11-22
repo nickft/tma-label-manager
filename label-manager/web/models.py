@@ -14,13 +14,13 @@ class Training(models.Model):
     def __str__(self):
         return self.name
 
-class TrainingSession(models.Model):
+class Session(models.Model):
     name = models.TextField()
     training = models.ForeignKey(Training, on_delete=CASCADE)
     created_at = models.DateTimeField(blank=True, null=True)
     finished_at = models.DateTimeField(blank=True, null=True)
     url = models.TextField()
-    status = models.IntegerField()
+    status = models.IntegerField() # -1 For not captured yet. 0 For under capturing. 1 For captured video
     bw_limitation = models.FloatField()
 
     def __str__(self):

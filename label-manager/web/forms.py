@@ -26,7 +26,7 @@ class TrainingForm(forms.Form):
         data = self.cleaned_data['bandwidth_limitations']
 
         if(len(data) == 0): 
-            raise data
+            return data
 
         commaNumber = data.count(',')
         elementList = data.split(',')

@@ -4,7 +4,7 @@ from django import forms
 from django.utils import timezone
 from django.conf import settings
 from django.http import HttpResponseRedirect
-
+from django.http import JsonResponse
 
 from .models import *
 from .forms import *
@@ -29,6 +29,38 @@ def index(request):
 
     return render(request, 'web/index.html', context)
 
+
+def requestVideo(request):
+    
+    training_list = Training.objects.all()
+
+    training = next(filter(lambda t: not t.has_finished, training_list), None)
+
+    session_list = Session.objects.filter(training=training)
+
+    selectedSession = None
+
+    for session in session_list:
+        if session.status == -1:
+            selectedSession = session
+            break
+
+    responseData={}
+
+    #If there is extra video to capture,
+    if(selectedSession):
+        responseData['finished'] = False
+        responseData['video_id'] = selectedSession.id
+        responseData['video_url'] = selectedSession.url
+        responseData['banwidth_limitation'] = selectedSession.bw_limitation
+    else:
+        responseData['finished'] = True
+        training.has_finished = True
+        training.save()
+        
+    return JsonResponse(responseData)
+
+
 def createTraining(request):
     
     form = TrainingForm(request.POST or None)
@@ -47,10 +79,6 @@ def createTraining(request):
 
         training.save()
 
-        #create sessions
-        bandwidth_limitation_list = training.bw_limitations.split(",")
-        number_of_bandwidth_limitations = len(bandwidth_limitation_list)
-
         # To avoid it create a list of real twitch channel names
         channel_name_list = getChannelNameList(100)
 
@@ -58,18 +86,24 @@ def createTraining(request):
 
             channel_name = random.choice(channel_name_list)
 
-            bandwidth_limitation_index = i% number_of_bandwidth_limitations
-
-            session = TrainingSession()
+            session = Session()
             session.name = "Session {}".format(i)
             session.training = training
             session.url = "https://player.twitch.tv/?channel={}".format(channel_name) 
             session.status = -1
-            session.bw_limitation = float(bandwidth_limitation_list[bandwidth_limitation_index].strip())
+            if training.bw_limitations: 
+                bandwidth_limitation_list = training.bw_limitations.split(",")
+                number_of_bandwidth_limitations = len(bandwidth_limitation_list)
+
+                bandwidth_limitation_index = i% number_of_bandwidth_limitations
+
+                session.bw_limitation = float(bandwidth_limitation_list[bandwidth_limitation_index].strip())
+            else:
+                session.bw_limitation = -1
 
             session.save()
 
-            return HttpResponseRedirect("/")     
+        return HttpResponseRedirect("/")     
 
     context = {
         'form': form,
@@ -105,3 +139,4 @@ def getChannelNameList(number_of_streams = 20):
         channel_name_list.append(channel['user_login'])
 
     return channel_name_list
+
