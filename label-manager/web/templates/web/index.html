@@ -1,12 +1,28 @@
 {% extends "web/layouts/app.html" %}
 
+{% load crispy_forms_tags %}
+
 {% block content %}
 <main class="container">
 
-    <div id="1" class="twitch-player" style="height: 70vh" />
-    </div>
+    <div class="parent-player">
+        <form class="training-form" action="/createTraining" method="post">
+            {% csrf_token %}
+            {% if training and not training.has_finished %}
+            <div>Training in progress</div>
+            {% else %}
+            <table>
+                {{ form | crispy }}
+            </table>
+            <button type="submit" class="btn btn-primary" value="Submit">Start Training</button>
+            {% endif %}
+        </form>
 
-    <div id="statistics">
+        <div id="1" class="twitch-player" />
+    </div>
+</main>
+
+<!-- <div id="statistics">
         <h1 id="title">Realtime statistics</h1>
         <p id="timestamp"></p>
         <p id="quality"></p>
@@ -73,10 +89,8 @@
                 </tr>
             </tbody>
         </table>
+    </div> -->
 
-
-    </div>
-</main>
 
 <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 

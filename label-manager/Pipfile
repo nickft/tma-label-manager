@@ -4,6 +4,10 @@ name = "pypi"
 
 [packages]
 Django = "~=3.2.1"
+django-environ = "*"
+requests = "*"
+django-bootstrap-form
+
 
 [dev-packages]
 

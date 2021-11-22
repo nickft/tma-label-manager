@@ -14,7 +14,7 @@ services:
     # volumes:
       # - ../data/backup:/home/ias/backup
     ports:
-      - 8001:8000
+      - 8000:8000
     depends_on:
       - tma-postgres
 volumes:
