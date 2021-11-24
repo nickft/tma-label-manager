@@ -1,4 +1,4 @@
-### Traffic Monitoring Analysis - QoE Classification based on network traffic
+# Traffic Monitoring Analysis - QoE Classification based on network traffic
 
 ## Installation
 
@@ -60,9 +60,10 @@ psql -h localhost -u postgresql
 
 For the scope of the dataset creation two models have been created (in models.py):
 
-1. Training
+**1. Training**
 
-| Training table |
+| Training table ||
+| ---- | ----------- |
 | name | TextField |
 | created_at | DateTimeField |
 | finished_at | DateTimeField |
@@ -71,9 +72,10 @@ For the scope of the dataset creation two models have been created (in models.py
 | session_duration (* How many seconds will the tests last) | FloatField |
 | has_finished (* Whether the training has finished) | BooleanField |
 
-2. Session
+**2. Session**
 
-| Session table |
+| Session table ||
+| ---- | ----------- |
 | name | TextField |
 | training | ForeignKey |
 | created_at | DateTimeField |
