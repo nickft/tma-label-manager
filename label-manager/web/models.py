@@ -22,6 +22,8 @@ class Session(models.Model):
     url = models.TextField()
     status = models.IntegerField() # -1 For not captured yet. 0 For under capturing. 1 For captured video
     bw_limitation = models.FloatField()
+    application_data = models.TextField(blank=True, null=True)
+    network_data = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
