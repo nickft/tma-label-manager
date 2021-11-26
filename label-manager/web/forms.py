@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 class TrainingForm(forms.Form):
     number_of_videos = forms.IntegerField(help_text="Enter the number of videos.")
     session_duration = forms.IntegerField(help_text="Duration of captured video (in seconds)")
-    bandwidth_limitations = forms.CharField(help_text="Comma-seperated text with the Mbps bandwidth limitations", required=False)
+    bandwidth_limitations = forms.CharField(help_text="Comma-seperated text with the Mbps bandwidth limitations. Included -1 for unlimitted", required=False)
 
     def clean_number_of_videos(self):
         data = self.cleaned_data['number_of_videos']

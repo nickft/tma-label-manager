@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django import forms
 from django.utils import timezone
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.http import JsonResponse
 
 from .models import *
@@ -12,34 +12,88 @@ from .forms import *
 import os
 import random
 import requests
-
+import json
 
 def index(request):
 
-    training_list = Training.objects.all()
+    form = TrainingForm()
 
-    training = next(filter(lambda t: not t.has_finished, training_list), None)
+    unfinished_training_list = Training.objects.filter(has_finished=False)
 
-    if(training):
+    training=None
+
+    if(not len(unfinished_training_list) == 0):
+        training = unfinished_training_list[0]
+
         if Session.objects.filter(training=training, status=0): 
             session = Session.objects.get(training=training, status=0)
             session.status = -1
             session.save()
 
-    form = TrainingForm()
+    finished_training_list = Training.objects.filter(has_finished=True)
 
     context = {
         'form': form,
-        'training': training
+        'training': training,
+        'finished_training_list': finished_training_list
     }
 
     return render(request, 'web/index.html', context)
 
+def downloadDataset(request, training_id):
+    training = Training.objects.get(id=training_id)
+
+    file_name = "dataset-"+str(training.id)+".csv"
+    file_url = "datasets/"+file_name
+
+    session_list = Session.objects.filter(training=training)
+
+    with open(file_url, 'w+') as fw:
+
+        network_data_dict = json.loads(session_list[0].network_data)
+        print(session_list[0].application_data)
+        application_data_dict = json.loads(session_list[0].application_data)
+
+        columnList=["id", "bw", "duration"]
+
+        columnList.extend(network_data_dict.keys())
+        columnList.extend(application_data_dict.keys())
+
+        fw.write(','.join([str(i) for i in columnList]) + "\n")
+
+        for session in session_list:
+            
+            columnList=[session.id, session.bw_limitation, training.session_duration]
+            columnList.extend(network_data_dict.values())
+            columnList.extend(application_data_dict.values())
+
+            fw.write(','.join([str(i) for i in columnList]) + "\n")
+
+    def file_iterator(file, chunk_size=512):
+        with open(file, 'rb') as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+        os.remove(file)
+
+    response = StreamingHttpResponse(file_iterator(file_url))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="{0}"'.format(file_name)
+    return response
+
+
 def startVideo(request, video_id):
 
     session = Session.objects.get(id=video_id)
+    
+    # TODO Flush ip route limitation
 
-    #TODO Start capturing traffic
+    # TODO Enforce bw limitation
+
+    # TODO Start capturing traffic using a thread function
 
     responseData={}
     if(session.status == -1):
@@ -56,6 +110,7 @@ def startVideo(request, video_id):
 
     # Update the status of the session to "Under Capturing"
     session.status = 0
+    session.started_at = timezone.now()
     session.save()
 
     return JsonResponse(responseData)
@@ -65,14 +120,15 @@ def finishVideo(request, video_id):
     if request.method == 'POST':
         session = Session.objects.get(id=video_id)
 
-        #TODO Retrieve network data based on tstat result
-        input_network_data =""
+        # TODO Retrieve network data based on tstat result
+        input_network_data ='{"pckt_size": 500,"avgSize": 10}'
 
         # Retrieve application data from 
         input_application_data = request.POST.get('application_data')
 
         # Update the status of the session to "Finished Capturing"
         session.status = 1
+        session.finished_at = timezone.now()
         session.network_data = input_network_data
         session.application_data = input_application_data
         session.save()
@@ -107,6 +163,7 @@ def requestVideo(request):
         responseData['video_url'] = selectedSession.url
     else:
         responseData['finished'] = True
+        training.finished_at = timezone.now()
         training.has_finished = True
         training.save()
         
@@ -183,7 +240,7 @@ def getChannelNameList(number_of_streams = 20):
     session.headers.update({'Authorization': 'Bearer '+access_token, 'Client-Id': settings.TWITCH_CLIENT_ID})
     response = session.get("https://api.twitch.tv/helix/streams?first="+str(number_of_streams))
 
-    print(response.json())
+    #print(response.json())
 
     response.raise_for_status()
 
@@ -197,4 +254,5 @@ def getChannelNameList(number_of_streams = 20):
         channel_name_list.append(channel['user_login'])
 
     return channel_name_list
+
 

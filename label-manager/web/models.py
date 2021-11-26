@@ -17,7 +17,7 @@ class Training(models.Model):
 class Session(models.Model):
     name = models.TextField()
     training = models.ForeignKey(Training, on_delete=CASCADE)
-    created_at = models.DateTimeField(blank=True, null=True)
+    started_at = models.DateTimeField(blank=True, null=True)
     finished_at = models.DateTimeField(blank=True, null=True)
     url = models.TextField()
     status = models.IntegerField() # -1 For not captured yet. 0 For under capturing. 1 For captured video

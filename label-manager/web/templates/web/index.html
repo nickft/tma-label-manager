@@ -6,9 +6,9 @@
 <main class="container">
 
     <div class="parent-player">
-        <form class="training-form" action="/createTraining" method="post">
-            {% csrf_token %}
-            {% if training and not training.has_finished %}
+        {% if training and not training.has_finished %}
+        {% csrf_token %}
+        <div class="under-training side-info">
             <div class="progress-wrapper">
                 <div id="progress-id"></div>
                 <div id="progress-bar-id" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
@@ -30,28 +30,30 @@
                     <td id="bandwidth-id"></td>
                 </tr>
             </table>
-    </div>
-    {% else %}
-    <table>
-        {{ form | crispy }}
-    </table>
-    <button type="submit" class="btn btn-primary" value="Submit">Start Training</button>
-    {% endif %}
-    </form>
+        </div>
 
-    <div id="1" class="twitch-player" />
+        <div id="1" class="twitch-player" />
+        {% else %}
+        <div class="pre-training side-info">
+            <form class="training-form" action="/createTraining" method="post">
+                {% csrf_token %}
+                <table>
+                    {{ form | crispy }}
+                </table>
+                <button type="submit" class="btn btn-primary" value="Submit">Start Training</button>
+            </form>
+
+            <div>
+                {% include "web/download.html" with finished_training_list=finished_training_list %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </main>
 
 <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 
-
-<!-- document.getElementById("videoid").innerHTML = "<h2>Video Id: " + player.getVideo() + "</h2>" -->
-
-{% if training and not training.has_finished %}
-
 <script type="text/javascript">
-
     var stallCount = 0;
 
     function resetApplicationData() {
@@ -59,14 +61,19 @@
     }
 
     function getApplicationData() {
-        result = "{";
+        var result = "{";
 
-        result += "stallCount:" + stallCount - 1;
+        result += '"stallCount":' + stallCount;
 
         result += "}"
+
         return result;
     }
+</script>
 
+{% if training and not training.has_finished %}
+
+<script type="text/javascript">
     function countStallEvents() {
         stallCount++;
     }
@@ -132,7 +139,7 @@
 
         document.getElementById("channel-id").innerHTML = data.video_url;
         document.getElementById("duration-id").innerHTML = data.duration + " seconds";
-        document.getElementById("bandwidth-id").innerHTML = data.bandwidth_limitation + " Mbps";
+        document.getElementById("bandwidth-id").innerHTML = (data.bandwidth_limitation == -1) ? "Unlimited" : data.bandwidth_limitation + " Mbps";
     }
 
     function startVideo(video_id) {
@@ -155,7 +162,7 @@
                         setTimeout(
                             function () {
                                 //Get application data
-                                application_data = getApplicationData();
+                                let application_data = getApplicationData();
                                 finishVideo(video_id, application_data)
                             }, data.duration * 1000)
                     }, 20 * 1000);

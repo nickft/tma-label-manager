@@ -1,0 +1,37 @@
+<table class="table table-striped table-download">
+    <thead>
+        <tr>
+            <th scope="col">Dataset Name</th>
+            <th scope="col">Generated at</th>
+            <th scope="col"># of videos</th>
+            <th scope="col">Download link</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if finished_training_list %}
+
+        {% for training in finished_training_list %}
+        <tr>
+            <td>{{training.name}}</td>
+            <td>{{training.finished_at}}</td>
+            <td>{{training.number_of_videos}}</td>
+            <td>
+                <form class="d-inline" action="{% url 'download-dataset' training_id=training.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">
+                        <img src="/static/web/img/download.png" class="download-icon icon">
+                    </button>
+                </form>
+            </td>
+        </tr>
+
+        {% endfor %}
+
+        {% else %}
+        <tr>
+            <td colspan="4" style="text-align: center;">No dataset generated... Yet!</td>
+        </tr>
+        {% endif %}
+    </tbody>
+
+</table>

@@ -14,9 +14,24 @@ table td, table th {
     vertical-align: middle;
 }
 
-.training-form {
-    width: 40%;
+.side-info{
     margin: 2vh;
+}
+
+.download-icon {
+    height: 16px;
+}
+
+.under-training {
+    width: 40%;
+}
+
+.pre-training {
+    width: 80%;
+}
+
+.table-download{
+    margin-top: 16px;
 }
 
 .training-form-button {
@@ -25,6 +40,7 @@ table td, table th {
 
 .parent-player{
     display: flex;
+    justify-content: center;
 }
 
 .progress-wrapper{

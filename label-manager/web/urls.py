@@ -9,4 +9,5 @@ urlpatterns = [
     path('requestVideo', views.requestVideo, name='request-video'),
     path('startVideo/<video_id>', views.startVideo, name='start-video'),
     path('finishVideo/<video_id>', views.finishVideo, name='finish-video'),
+    path('download/<training_id>', views.downloadDataset, name='download-dataset')
 ]
