@@ -53,7 +53,7 @@ docker exec -it <container id> sh
 This opens a shell to the service's container where you get to see all the files that it has. For example, if you want to perform some queries to the database to make sure that everything is stored properly, once you have connected to the respective container, execute the command
 
 ```
-psql -h localhost -u postgresql
+psql -h localhost -U postgres
 ```
 
 ## Db Model
@@ -72,6 +72,10 @@ For the scope of the dataset creation two models have been created (in models.py
 | session_duration (* How many seconds will the tests last) | FloatField |
 | has_finished (* Whether the training has finished) | BooleanField |
 
+```
+SELECT * FROM web_training;
+```
+
 **2. Session**
 
 | Session table ||
@@ -85,6 +89,10 @@ For the scope of the dataset creation two models have been created (in models.py
 | bw_limitation (* Specific bandwidth limitation in Mbps for this session)| FloatField |
 | application_data (* Application data in json)| TextField |
 | network_data (* Network data in json) | TextField |
+
+```
+SELECT * FROM web_session;
+```
 
 ## In Brief
 
