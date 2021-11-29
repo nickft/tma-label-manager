@@ -90,10 +90,6 @@ def downloadDataset(request, training_id):
 def startVideo(request, video_id):
 
     session = Session.objects.get(id=video_id)
-    
-    # TODO Flush ip route limitation
-
-    # TODO Enforce bw limitation
 
     # Start capturing traffic using a thread function
     thread = threading.Thread(target=captureTraffic, args=(settings.CAPTURE_INTERFACE, session))
@@ -125,7 +121,7 @@ def finishVideo(request, video_id):
         session = Session.objects.get(id=video_id)
 
         # TODO Retrieve network data based on tstat result
-        input_network_data ='{"pckt_size": 500,"avgSize": 10}'
+        input_network_data = getTstatStatistics(session)
 
         # Retrieve application data from 
         input_application_data = request.POST.get('application_data')
