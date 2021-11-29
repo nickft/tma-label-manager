@@ -1,0 +1,59 @@
+=head1 Global Constants
+
+The dimensions of the internal data structures and some key operational parameters are defined 
+in Tstat at compilation time (in source file C<param.h>). 
+To allow some flexibility in Tstat deployment on live probes, like tailoring the capture process
+to the actual traffic, the default internal values can be overriden,
+providing new values at startup using the C<-G> command line option and a C<ini> file.
+
+The C<ini> file dedicated to the global constants is identified by the C<[globals]> header, 
+valid only in C<-G> context and that cannot appear in the runtime configuration Tstat C<ini> 
+file (C<-T>).
+
+A complete commented example of C<ini> is provided in the Tstat source distribution as the file 
+C<tstat-conf/globals.conf>. We report here a simplified list of the available parameters.
+
+    > cat tstat-conf/globals.conf
+    [globals]
+    # Important for the system dimensioning
+    max_tcp_pairs = 180000	# Max number of tracked TCP flows
+    max_udp_pairs = 360000	# Max number of tracked UDP flows
+    hash_table_size = 2000003	# Size of the TCP/UDP flow hashes
+
+    # Important for the system performances
+    tcp_idle_time = 300.0	# Timeout to close regular TCP flows [seconds]
+    udp_idle_time = 200.0	# Timeout to close regular UDP flows [seconds]
+    tcp_singleton_time = 10.0	# Timeout to close singleton TCP flows [seconds] 
+    udp_singleton_time = 10.0   # Timeout to close singleton UDP flows [seconds]
+    gc_cycle_time = 5.0		# Duration of the Garbage Collection cycle [seconds]
+    gc_split_ratio = 10000	# Number of partitions of the Garbage Collection cycle
+
+    # Change only if the default values are too small
+    max_adx_slots      = 70001	# Size of the hash for IP address hit counter
+    max_internal_hosts = 100    # Max number of internal networks (-N)
+    max_cloud_hosts    = 100	# Max number of 'cloud' networks (-C)
+    max_crypto_hosts   = 40	# Max number of encrypted networks (-Y)
+    max_white_hosts    = 100    # Max number of whitelisted networks (-W)
+    max_internal_ethers = 20    # Max number of Ethernet addresses for internal traffic (-M)
+    max_crypto_cache_size = 130000	# Size of the LRU cache used in address encryption
+    dns_cache_size = 100000	# Size of the DNS cache used by the DNhunter module 
+
+    # Change to tailor the logging activity
+    runtime_config_idle = 21.0	# Check interval for runtime.conf file (-T) 
+    runtime_mtime_counter = 3   # Check cycles for runtime.conf (-T)
+    max_time_step = 300.0	# Interval for histogram/RRD collection [seconds]
+    dirs = 12			# Number of Max_Time_Step intervals for each log directory
+    rate_sampling = 1.0		# Interval for TCP flow rate measures [seconds]
+
+    # Very specific, change at your risk
+    max_seg_per_quad = 100	# Max number of segments in flow recostructions
+    list_search_dept = 200	# Lenght of the linear search for TCP/UDP flows
+    entropy_sample    = 60	# Number of bytes per packet used for encryption detection
+    entropy_threshold = 3.7	# Entropy threshold used for encryption detection
+    min_delta_t_tcp_dup_pkt = 2000.0 	# Interarrival time for TCP DUP detection [microseconds]
+    min_delta_t_udp_dup_pkt = 1000.0 	# Interarrival time for UDP DUP detection [microseconds]
+    
+Parameter names are case-insensitive. Values in the C<[globals]> section can have integer or 
+floating point value. Types are loosely enforced, i.e. integer values can be provided to floating point parameters,
+but not the opposite. A warning or an error message is generated when the value or the type of
+a parameter is not correct or cannot be safely converted to the right type.

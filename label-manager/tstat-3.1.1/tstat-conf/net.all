@@ -1,0 +1,4 @@
+# Mask to indicate that all IP subnets are supposed to be internal
+# The same result is obtained omitting the -N option
+0.0.0.0/0
+::/0

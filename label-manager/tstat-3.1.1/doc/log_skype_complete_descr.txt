@@ -1,0 +1,72 @@
+Tstat produces a "log_skype_complete" reporting every Skype possible flow 
+pair classified exploiting the methodology described into 
+D.Bonfiglio, M.Mellia, M.Meo, D.Rossi,P.Tofanelli, 
+"Revealing skype traffic: when randomness plays with you", 
+ACM SIGCOMM 2007, Kyoto, Japan.
+
+Both files have the same format with values separated by spaces.
+Columns are grouped according to C2S - Client-to-Server 
+and S2C - Server-to-Client traffic directions. 
+
+                            TCP flows
+################################################################################
+# C2S   # S2C     # Short Description         # Unit  # Long Description
+################################################################################
+# 1     # 18      # Client/Server IP address  # -     # Client IP address
+# 2     # 19      # Client/Server TCP Port    # -     # Client TCP port
+# 3     # 20      # Internal                  # 0/1   # 1 = internal IP address
+# 4     # 21      # CryptoPAN anonymized      # 0/1   # 1 = anonymized IP address
+# 5     # 22      # Flow Size                 # bytes # Flow Size
+# 6     # 23      # Total packets             # -     # No. of Total flow packets
+# 7     # 24      # Audio/video pkts          # -     # No. of audio or audio+video packets
+# 8     # 25      # Video only pkts           # -     # No. of video only packets
+# 9     # 26      # Avg Pktsize               # -     # Average Packet size
+# 10    # 27      # Avg Pktsize: MMB          # -     # Average Packet Size: Max Mean Belief
+# 11    # 28      # Avg IPG                   # -     # Average Inter-packet Gap
+# 12    # 29      # Avg IPG: MMB              # -     # Average IPG: Max Mean Belief
+# 13    # 30      # CHI HDR max               # -     # Chi-square on Header: max value
+# 14    # 31      # CHI PAY max               # -     # Chi-square on Payload: max value
+# 15    # 32      # BFT                       # -     # Bayesian Flow Type
+# 16    # 33      # CSFT                      # -     # Chi-square Flow Type
+# 17    # 34      # Video present             # 0/1   # 1 = Video is present
+################################################################################
+# 35    #         # Start Time                # s     # Flow Start Time
+# 36    #         # Elapsed Time              # s     # Flow Elapsed Time
+# 37    #         # L4 proto                  # 'T'   # Label to state a TCP flow 
+################################################################################
+
+                        UDP flows
+############################################################################
+# C2S   # S2C  # Short description       # Unit  # Long description
+############################################################################
+#  1    #  25  # Client/Server IP addr   # -     # IP address of the 'client' 
+#  2    #  26  # Client/Server port      # -     # TCP/UDP port address for the 'client'
+#  3    #  27  # Internal                # 0/1   # 1 = internal IP address
+#  4    #  28  # CryptoPAN anonymized    # 0/1   # 1 = anonymized IP address
+#  5    #  29  # Flow Size               # bytes # Flow Size
+#  6    #  30  # Total packets           # -     # No. of Total flow packets
+#  7    #  31  # E2E packets             # -     # No. of End-to-End packets
+#  8    #  32  # E2O packets             # -     # No. of SkypeOut packets
+#  9    #  33  # SIG packets             # -     # No. of Signaling packets
+# 10    #  34  # UNK packets             # -     # No. of Unknown packets
+# 11    #  35  # Audio/Video pkts        # -     # No. of audio or audio+video packets
+# 12    #  36  # Video only pkts         # -     # No. of video only packets
+# 13    #  37  # Avg Pktsize             # -     # Average Packet size 
+# 14    #  38  # Avg Pktsize: MMB        # -     # Average Packet Size: Max Mean Belief
+# 15    #  39  # Avg IPG                 # ms    # Average Inter-packet Gap
+# 16    #  40  # Avg IPG: MMB            # -     # Average IPG: Max Mean Belief
+# 17    #  41  # CHI HDR min             # -     # Chi-square on Header: min value
+# 18    #  42  # CHI HDR max             # -     # Chi-square on Header: max value of {1-4} & {7,8} blocks
+# 19    #  43  # CHI HDR min 5,6         # -     # Chi-square on Header: min value of {5,6} blocks
+# 20    #  44  # CHI PAY max             # -     # Chi-square on Payload: max value
+# 21    #  45  # DFT                     # -     # Deterministic Flow Type
+# 22    #  46  # BFT                     # -     # Bayesian Flow Type
+# 23    #  47  # CSFT                    # -     # Chi-square Flow Type
+# 24    #  48  # Video present           # 0/1   # 1 = Video is present
+###########################################################################
+# 49    #      # Start Time              # s     # Flow Start Time (epoch)
+# 50    #      # Elapsed Time            # s     # Flow Elapsed Time
+# 51    #      # L4 proto                # 'U'   # Label to state a TCP flow 
+############################################################################
+
+

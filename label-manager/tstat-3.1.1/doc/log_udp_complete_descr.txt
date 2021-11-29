@@ -1,0 +1,65 @@
+Tstat produces a "log_udp_complete" file reporting every tracked UDP flow pair. 
+An UDP flow pair is identified when the first UDP segment is observed for 
+a UDP socket pair, and is ended when no packet has been observed (from both sides) 
+for 10s after the first packet (UDP_Singleton_Time) or 3min20s after the last data 
+packet (UDP_Idle_Time); the actual values of the timeout timers is controlled 
+by the corresponding global constants provided via the -G command line option.
+
+By default, Skype and chat protocols running over UDP are reported 
+only in a separate file (see LOG_ALL_UDP in param.h). 
+
+Columns are grouped according to C2S - Client-to-Server 
+and S2C - Server-to-Client traffic directions and values
+are separated by spaces.
+
+############################################################################
+# C2S # S2C # Short description      # Unit  # Long description            #
+############################################################################
+#  1  # 10  # Client/Server IP addr  # -     # IP addresses of client/server
+#  2  # 11  # Client/Server UDP port # -     # UDP port addresses of client/server
+#  3  # 12  # First time             # ms    # client/server first packet in absolute time (epoch)
+#  4  # 13  # Completion time        # s     # Time between the first and the last packet from the 'client'
+#  5  # 14  # Data bytes             # bytes # Number of bytes transmitted in the payload
+#  6  # 15  # Packets                # -     # Total number of packets observed from the client/server
+#  7  # 16  # Internal               # 0/1   # 1 = IP address is internal 
+#  8  # 17  # Anonymized             # 0/1   # 1 = IP address is CryptoPAN anonymized 
+#  9  # 18  # UDP Type               # -     # Protocol type (see also the udp_type enum in struct.h)
+############################################################################
+#  19       # FQDN                   # -     # Fully Qualified Domain Name recovered using DNHunter
+
+UDP type - col. 9, 18 (see struct.h)
+#########################################################################
+# Value # Internal      # Description                                   #
+#########################################################################
+# 0     # UDP UNKNOWN   # Unknown (unclassified)                        #
+# 1     # FIRST_RTP     # Unknown (possible unclassified RTP flow)      #
+# 2     # FIRST_RTCP    # Unknown (possible unclassified RTCP flow)     #
+# 3     # RTP           # RTP protocol                                  #
+# 4     # RTCP          # RTCP protocol                                 #
+# 5     # SKYPE_E2E     # Skype End-to-End                              #
+# 6     # SKYPE_E2O     # SkypeOut                                      #
+# 7     # SKYPE_SIG     # Skype signalling                              #
+# 8     # P2P_ED2K      # eMule ED2K protocol                           #
+# 9     # P2P_KAD       # eMule KAD (Kamdelia) protocol                 #
+# 10    # P2P_KADU      # Adunanza (eMule mod) KAD (Kamdelia) protocol  #
+# 11    # P2P_GNU       # Gnutella protocol [*]                         #
+# 12    # P2P_BT        # BitTorrent DHT protocol (only)                #
+# 13    # P2P_DC        # DirectConnect protocol [*]                    #
+# 14    # P2P_KAZAA     # KaZaa protocol [*]                            #
+# 15    # P2P_PPLIVE    # PPLive IP-TV protocol                         #
+# 16    # P2P_SOPCAST   # SopCast IP-TV protocol                        #
+# 17    # P2P_TVANTS    # TV-Ants IPTV protocol                         #
+# 18    # P2P_OKAD      # eMule obfuscated KAD protocol                 #
+# 19    # DNS           # DNS protocol                                  #
+# 20    # P2P_UTP       # BitTorrent uTP protocol (only)                #
+# 21    # P2P_UTPBT     # BitTorrent DHT and uTP protocols (mixed)      #
+# 22    # UDP_VOD       # MPEG2 PES Streaming over UDP                  #
+# 23    # P2P_PPSTREAM  # PPStream IP-TV protocol                       #
+# 24    # TEREDO        # Teredo IPv6 tunneling over UDP (mostly BitTorrent) #
+# 25    # UDP_SIP       # SIP over UDP messages                         #
+# 26    # UDP_DTLS      # DTLS protocol                                 #
+# 27    # UDP_QUIC      # QUIC protocol                                 #
+#########################################################################
+
+[*] Unless explicitely enabled at compilation time by P2P_OLDPROTO, these 
+obsolete protocols are actually ignored by Tstat.

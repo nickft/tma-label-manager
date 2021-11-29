@@ -1,0 +1,63 @@
+Tstat produces a "dup_ooo" file if the LOG_OOO has being defined during compile.
+See tstat/Makefile.conf for details.
+
+Tstat log in this file all the events detected when tracking TCP files which
+refer to "out-of-sequence" or "duplicate" messages received. Or all the packet that are not received in sequence.
+
+Each event is logged on a single raw, which stores a bounch of parameter that can be used later for post-processing.
+Numbers are TAB separated for easy of post-processing.
+
+Here it follows a brief descrition of the columns.
+
+############################################################################
+#Col n# Short desc      # Long descr                                      #
+############################################################################
+#  1  # time            # timestamp of the event in [microseconds], since the beginning of the trace
+#  2  # client IP       # IP address of the client within this TCP flow
+#  3  # client TCp port # TCP port number of the client within this TCP flow
+#  4  # server IP       # IP address of the server within this TCP flow
+#  5  # server TCp port # TCP port number of the server within this TCP flow
+#  6  # data packets    # number of data packets reffering to this half flow transferred so far
+#  7  # data bytes      # number of data bytes reffering to this half flow to this half flow transferred so far
+#  8  # classification  # the classification accordin to the heuristic. See later
+#  9  # SACK OK         # 1 if sack was sucessfully negotiated
+# 10  # MSS             # this half flow MSS
+# 11  # from client     # 1 if this half flow has the client as source (pkts from client to server)
+# 12  # internal dest   # 1 if the destination of the packet was an internal host accoring to the -Nnet file
+# 13  # Initial CWND    # Starting in-flight-size observed from this half flow
+# 14  # recovery_time   # time between this event and the previous in-sequence already received packet
+# 15  # time to next    # time between this event and the next packet already received by this flow if exists
+# 16  # pkt data        # bytes in the payload of this packet
+# 17  # RTO             # RTO estimation = RTT + 4 stdev
+# 18  # MIN_RTT         # minimum RTT estimation so far
+# 19  # Mean_RTT        # average RTT so far
+# 20  # num DUP ACK     # number of duplicate ACK on the previous packet i
+
+The "classification" field assume the following meaning:
+
+IN_SEQUENCE			0
+RETRANSMISSION_RTO   		1
+RETRANSMISSION_FR  		2
+REORDERING			3
+NETWORK_DUPLICATE		4
+FLOW_CONTROL			5
+UNNECESSARY_RETRANSMISSION_RTO	6
+UNNECESSARY_RETRANSMISSION_FR	7
+DUPLICATE_WITH_RC_LESS_THAN_RTT_NOT_3DUP_ACK   8
+DUPLICATE_WITH_RC_LESS_THAN_RTO_AND_GREATER_THAN_RTT_NOT_3DUP_ACK 9
+OOO_WITH_RC_LESS_THAN_RTT_NOT_3DUP_ACK 10
+OOO_WITH_RC_LESS_THAN_RTO_AND_GREATER_THAN_RTT_NOT_3DUP_ACK 11
+UNNECESSARY_RETRANSMISSION_WITH_RC_LESS_THAN_RTT_NOT_3DUP_ACK 12
+UNNECESSARY_RETRANSMISSION_WITH_RC_LESS_THAN_RTO_AND_GREATER_THAN_RTT_NOT_3DUP_ACK 13
+
+UNKNOWN           (NUM_TCP_ANOMALIES - 1) 
+NUM_TCP_ANOMALIES 64
+
+BATCH_CLASSIFICATION 16
+If it is a batch classification, then +16 is added (or the 5-th bit is set
+to one)
+
+If no RTT sample is valid, then +32 is added (or the 6-th bit is set to
+one)
+NO_RTT_SAMPLE_CLASSIFICATION 32
+

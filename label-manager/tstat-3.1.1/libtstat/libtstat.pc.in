@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libtstat
+Description: Tstat Shared Library
+Version: @LIBTSTAT_VERSION@
+Libs: -L${libdir} -lm -lpthread @PCAP_LDLINK@ @RRD_LDLINK@
+Cflags: -I${includedir}

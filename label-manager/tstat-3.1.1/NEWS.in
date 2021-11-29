@@ -1,0 +1,133 @@
+News in @PACKAGE_VERSION@
+-------------
+* Improved and reworked IPv6 management:
+    - IPv6 datagrams will respect the direction (internal/external) determined by the MAC 
+      addresses (-M) or by the ip_direction parameter (when used in LibTstat)
+    - DN-Hunter supports IPv6
+    - IPv6 addresses can be CryptoPAn-encrypted
+    - Unified the management for the lists of internal/crypto/cloud/whitelist networks
+    - When IPv6 is enabled at compilation time, processing of IPv6 datagrams can be disabled
+      via the -6 command line option 
+* Added explicit Netflix classification, included as a separate Web class in the RRDs
+* Defined new RRD/histos for TLS classification based on SNI for the major services
+* Relaxed the test for HALFDUPLEX flows to be less strict on out-of-order SYN/SYNACKs
+* Added Cookies and Do-Not-Track to log_http_complete. Cookies are valid only when http_full_url=2
+* General improvements and bugfixes
+
+News in 3.0
+-------------
+* New features
+    - New modular organization for the log files
+        + Modular structure controlled by runtime.conf
+        + Merged log_video_complete and log_streaming_complete in a single 
+          log_video_complete file, sharing modules from log_tcp_complete 
+    - Improved configurability
+        + Most of the constant parameters that used to be defined at 
+          compilation time in param.h can now provided at startup with the new -G option 
+    - Usage of the CryptoPAn-based encryption for address anonymization
+    - Inclusion of the DN-Hunter feature, to associate DNS information to the traffic flows
+* Improved performances for its usage with the DPDKStat framework
+* Updated DPI classification
+    - Improved QUIC classification
+    - Richer TLS information: NPN/ALPN negotiation for SPDY and HTTP2, TLS handshake timings
+    - Disabled old or rare P2P protocols 
+* Removed multi-threading support (not compatible with the new features)
+* General improvements and bugfixes
+
+News in 2.4
+-------------
+* New features
+  - log files are created with a header at the beginning specifing their format
+  - logs can be enabled/disable individually using runtime.conf
+  - improved the reactivity of enabling/disabling logs using runtime.conf (no need to wait the creation o the new directory before to see a new file)
+  - dump TCP traffic based on Conn_Type 
+  - log details of HTTP requests/responses
+* Added the option to distiguish internal/external traffic based on the MAC
+  addresses
+* Updated DPI classification
+  - Added HLS video classification
+  - Updated Facebook, Vimeo, FLV, RTMP, and YouTube classification
+  - Added support for the new 46-char YouTube IDs
+* General improvements and bugfixes
+  
+News in 2.3
+-------------
+* New additional DPI engine for classification of video streams,
+  with a new associated log file (log_streaming_complete)
+* New dump options
+* Updated DPI classification
+  - UDP MPEG2 PES video streams, PPStream P2P TV, TEREDO
+  - Updated Facebook and YouTube classification
+  - Added Twitter and Dropbox services
+  - Added additional SSL logging
+* General improvements and bugfixes
+
+News in 2.2
+-------------
+* Direct generation of compressed (.gz) logs and dumps
+* Updated DPI classification:
+  - Bittorrent uTP
+  - Detailed YouTube characterization
+* "Cloud" characterization: separate identification and statistics 
+   (RDD/Histograms)  for traffic to/from a specific range of 
+   addresses ("cloud").
+* New log file for videos (log_video_complete)
+* General improvements and bugfixes
+
+News in 2.1
+-------------
+* Bugfixes (see ChangeLog)
+* Updated DPI classification:
+  - Added SSL/TLS
+  - Improved IMAP classification
+  - Heuristics for identification of eMule/ED2K obfuscate TCP connections 
+    and eMule/KAD obfuscate UDP flows 
+  - Heuristics for identification of Bittorrent encrypted connections
+  - HTTP flow content identification, based on the shallow matching of 
+    the URL path:
+     - Facebook
+     - YouTube and other video download services
+     - File Hosting services (RapidShare, MegaUpload, and other)
+* New format for subnet file (-N)
+* Changed bitrate RRDs and histograms from kbit/s to bit/s
+* Improved detection of duplicated TCP/UDP segments 
+* Improved identification of MPLS packets when using libpcap
+* Included a MySQL db scheme and a few Perl scripts for Tstat Log analysis 
+  (in scripts/MySQL/)
+
+News in 2.0
+-------------
+* Added a Skype classification engine
+* Added a Deep Packet Inspector - DPI classifier for application level
+* Added support to create dump traces splitting the input traffic 
+  w.r.t DPI classification
+* Added a runtime module to enable/disable writing of traces and logs 
+  without kill the Tstat process
+* Added support for building Libtstat, a shared library that enable to 
+  use Tstat features from external tools
+* Added a new compact format for log files
+
+News in 1.01
+------------
+* updated erf.c so that also VLAN encapsulation over SDH should be correctly decoded
+* experimental and quick patch that allows to read from two separate files 
+  when using the ERF file formats. This is useful when using two separate trace 
+  files (one file for each directions). To enable this, add the -2 switch, 
+  and then pass two files at tstat, e.g., tstat -2 in.erf out.erf 
+  Warning: the first file may be compressed, while the second one must not; 
+  use a pipe to avoid this limitation. 
+
+News in 1.0
+------------
+* Integration with RRDtool
+* Live analysis with libpcap and DAG interface
+* multithread to support live analysis on high-speed links
+* new measurement indexes
+  o TCP out-of-sequence and duplicate classification
+  o RTP/RTCP flow analysis
+  o UDP flow analysis
+  o other changes and tune-up 
+* updated code to TCPTrace ver 6.6.x
+* many bug fixes
+* uniformed naming to English (possibly) language
+* many more... 

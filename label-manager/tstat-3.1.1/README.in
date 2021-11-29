@@ -1,0 +1,30 @@
+General Information
+===================
+
+This is version @PACKAGE_VERSION@ of Tstat.
+
+Tstat is a a passive sniffer able to provide several insight on 
+the traffic patterns at both the the network and transport levels. 
+
+You can download the latest Tstat tarball on its official site:
+
+    http://tstat.polito.it/index.shtml
+
+
+Installation
+============
+
+Tstat requires libm, libpcap, libpthread, and optionally librrd and libz.
+
+Simple install procedure:
+
+  % ./autogen.sh
+  % ./configure [--enable-libtstat]   # use --enable-libtstat to build libtstat
+  % make                                    
+  [ Become root if necessary ]
+  % make install                            
+
+See the file 'INSTALL' for more detailed information or see files in doc/HOWTO.
+
+
+The Tstat team.

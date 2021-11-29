@@ -1,0 +1,17 @@
+Tstat produces a "log_chat_messages" reporting every chat message tracked.
+Tstat is able to detect messages received or sent by MSN, Yahoo, Jabber or GTalk clients.
+
+Values are separated by spaces.
+
+###########################################################################
+#Col.no.# Short descr   # Long description
+###########################################################################
+#  1    # TCP Flow No.  # TCP Flow ID Number
+#  2    # Message type  # Type of Message (? if not available) 
+#  3    # Dir           # TCP Flow Direction (1=C2S, -1=S2C)
+#  4    # Message size  # Message Payload Size [Bytes] (? if not available) 
+#  5    # Payload size  # TCP Payload Size [Bytes]
+#  6    # Start Time    # Flow Start Time (in epoch) [s]
+#  7    # Arrival Time  # Message Arrival Time [s]
+#  8    # Conn Type     # see TCP connection type
+###########################################################################

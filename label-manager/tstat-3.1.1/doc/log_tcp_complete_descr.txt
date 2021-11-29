@@ -1,0 +1,340 @@
+Tstat produces "log_tcp_complete" and "log_tcp_nocomplete" files which log every TCP
+connection that has been tracked.
+
+A TCP connection is identified when the first SYN segment is observed, and
+is ended when either:
+  - the FIN/ACK or RST segments are observed;
+  - no data packet has been observed (from both sides) for a default timeout 
+    of 10s after the opening SYN segment (TCP_Singleton_Time), or 5min after 
+    the last data packet (TCP_Idle_Time); the actual values of the timeout
+    timers is controlled by the corresponding global constants provided via the
+    -G command line option.
+
+Tstat discards all the connections for which the three way handshake is not 
+properly seen. Then, in case a connection is correctly closed it is stored in 
+log_tcp_complete, otherwise in log_tcp_nocomplete. 
+
+Both files have similar format with values separated by spaces.
+Columns are grouped according to C2S - Client-to-Server 
+and S2C - Server-to-Client traffic directions. 
+
+The log_tcp_complete is made by the composition of different measurements sets, 
+whose presence is controlled by variables in the [options] section of runtime.conf
+The order of the sets is hardcoded, so the structure of log_tcp_complete is always:
+ - Core TCP set
+ - TCP End to End set (optional)
+ - TCP P2P set (optional)
+ - TCP Options set (optional)
+ - TCP Layer7 set (optional)
+ - TCP Advanced set (optional)
+
+The structure of log_tcp_nocomplete is fixed and it will always only include 
+the Core TCP set. 
+
+Here it follows a brief description of the columns for each set, considering 
+that often the actual column number will depend on the mix of sets, and 
+you should refer to the header line in the file to identify the current log 
+content.
+
+Core/Basic TCP Set
+------------------
+
+This set contains the basic information for all TCP flows, it is always 
+included and cannot be disactivated in runtime.conf.
+
+############################################################################
+# C2S # S2C # Short description      # Unit  # Long description            #
+############################################################################
+#  1  # 15  # Client/Server IP addr  # -     # IP addresses of the client/server
+#  2  # 16  # Client/Server TCP port # -     # TCP port addresses for the client/server
+#  3  # 17  # packets                # -     # total number of packets observed form the client/server
+#  4  # 18  # RST sent               # 0/1   # 0 = no RST segment has been sent by the client/server
+#  5  # 19  # ACK sent               # -     # number of segments with the ACK field set to 1
+#  6  # 20  # PURE ACK sent          # -     # number of segments with ACK field set to 1 and no data
+#  7  # 21  # unique bytes           # bytes # number of bytes sent in the payload
+#  8  # 22  # data pkts              # -     # number of segments with payload
+#  9  # 23  # data bytes             # bytes # number of bytes transmitted in the payload, including retransmissions
+# 10  # 24  # rexmit pkts            # -     # number of retransmitted segments
+# 11  # 25  # rexmit bytes           # bytes # number of retransmitted bytes
+# 12  # 26  # out seq pkts           # -     # number of segments observed out of sequence
+# 13  # 27  # SYN count              # -     # number of SYN segments observed (including rtx)
+# 14  # 28  # FIN count              # -     # number of FIN segments observed (including rtx)
+############################################################################
+# 29        # First time abs         # ms    # Flow first packet absolute time (epoch)
+# 30        # Last time abs          # ms    # Flow last segment absolute time (epoch)
+# 31        # Completion time        # ms    # Flow duration since first packet to last packet
+# 32        # C first payload        # ms    # Client first segment with payload since the first flow segment
+# 33        # S first payload        # ms    # Server first segment with payload since the first flow segment
+# 34        # C last payload         # ms    # Client last segment with payload since the first flow segment
+# 35        # S last payload         # ms    # Server last segment with payload since the first flow segment
+# 36        # C first ack            # ms    # Client first ACK segment (without SYN) since the first flow segment
+# 37        # S first ack            # ms    # Server first ACK segment (without SYN) since the first flow segment
+# 38        # C Internal             # 0/1   # 1 = client has internal IP, 0 = client has external IP
+# 39        # S Internal             # 0/1   # 1 = server has internal IP, 0 = server has external IP
+# 40        # C anonymized           # 0/1   # 1 = client IP is CryptoPAn anonymized
+# 41        # S anonymized           # 0/1   # 1 = server IP is CryptoPAn anonymized
+############################################################################
+# 42        # Connection type        # -     # Bitmap stating the connection type as identified by TCPL7 inspection engine (see protocol.h)
+# 43        # P2P type               # -     # Type of P2P protocol, as identified by the IPP2P engine (see ipp2p_tstat.h)
+# 44        # HTTP type              # -     # For HTTP flows, the identified Web2.0 content (see the http_content enum in struct.h)
+############################################################################
+
+E2E stat set
+------------
+
+This set includes measures about RTT and TTL for TCP connections. 
+It is enabled in runtime.conf setting "tcplog_end_to_end = 1".
+
+If enabled, the End-2-End stat set always follows the Core/Basic set.
+############################################################################
+# C2S # S2C # Short description      # Unit  # Long description            #
+############################################################################
+# 45  # 52  # Average rtt            # ms    # Average RTT computed measuring the time elapsed between the data segment and the corresponding ACK
+# 46  # 53  # rtt min                # ms    # Minimum RTT observed during connection lifetime
+# 47  # 54  # rtt max                # ms    # Maximum RTT observed during connection lifetime
+# 48  # 55  # Stdev rtt              # ms    # Standard deviation of the RTT
+# 49  # 56  # rtt count              # -     # Number of valid RTT observation
+# 50  # 57  # ttl_min                # -     # Minimum Time To Live
+# 51  # 58  # ttl_max                # -     # Maximum Time To Live
+############################################################################
+
+P2P stats
+----------
+
+This set includes P2P specific information (the general P2P type is included in the Core set). 
+It is enabled in runtime.conf setting "tcplog_p2p = 1".
+The P2P set will start at column Y (Y being 45 or 59, depending on the
+status of the E2E stat set). All the other columns will be relative to Y
+
+############################################################################
+# Y         # P2P subtype            # -     # P2P protocol message type, as identified by the IPP2P engine (see ipp2p_tstat.c)
+# Y+1       # ED2K Data              # -     # For P2P ED2K flows, the number of data messages
+# Y+2       # ED2K Signaling         # -     # For P2P ED2K flows, the number of signaling (not data) messages
+# Y+3       # ED2K C2S               # -     # For P2P ED2K flows, the number of client<->server messages
+# Y+4       # ED2K C2C               # -     # For P2P ED2K flows, the number of client<->client messages
+# Y+5       # ED2K Chat              # -     # For P2P ED2K flows, the number of chat messages 
+############################################################################
+
+TCP options set
+---------------
+
+This set includes specific TCP protocol statistics. 
+It is enabled in runtime.conf setting "tcplog_options = 1".
+
+The TCP options set will start at column X (X depending on the
+status of the E2E and P2P stat sets). All the other columns will be relative to X
+
+############################################################################
+# C2S # S2C # Short description      # Unit  # Long description            #
+############################################################################
+# X    # X+23 # RFC1323 ws             # 0/1   # Window scale option sent
+# X+1  # X+24 # RFC1323 ts             # 0/1   # Timestamp option sent
+# X+2  # X+25 # window scale           # -     # Scaling values negotiated [scale factor]
+# X+3  # X+26 # SACK req               # 0/1   # SACK option set
+# X+4  # X+27 # SACK sent              # -     # number of SACK messages sent
+# X+5  # X+28 # MSS                    # bytes # MSS declared
+# X+6  # X+29 # max seg size           # bytes # Maximum segment size observed
+# X+7  # X+30 # min seg size           # bytes # Minimum segment size observed
+# X+8  # X+31 # win max                # bytes # Maximum receiver window announced (already scale by the window scale factor)
+# X+9  # X+32 # win min                # bytes # Maximum receiver windows announced (already scale by the window scale factor)
+# X+10 # X+33 # win zero               # -     # Total number of segments declaring zero as receiver window
+# X+11 # X+34 # cwin max               # bytes # Maximum in-flight-size computed as the difference between the largest sequence number so far, and the corresponding last ACK message on the reverse path. It is an estimate of the congestion window
+# X+12 # X+35 # cwin min               # bytes # Minimum in-flight-size
+# X+13 # X+36 # initial cwin           # bytes # First in-flight size, or total number of unack-ed bytes sent before receiving the first ACK segment
+# X+14 # X+37 # rtx RTO                # -     # Number of retransmitted segments due to timeout expiration
+# X+15 # X+38 # rtx FR                 # -     # Number of retransmitted segments due to Fast Retransmit (three dup-ack)
+# X+16 # X+39 # reordering             # -     # Number of packet reordering observed
+# X+17 # X+40 # net dup                # -     # Number of network duplicates observed
+# X+18 # X+41 # unknown                # -     # Number of segments not in sequence or duplicate which are not classified as specific events
+# X+19 # X+42 # flow control           # -     # Number of retransmitted segments to probe the receiver window
+# X+20 # X+43 # unnece rtx RTO         # -     # Number of unnecessary transmissions following a timeout expiration
+# X+21 # X+44 # unnece rtx FR          # -     # Number of unnecessary transmissions following a fast retransmit
+# X+22 # X+45 # != SYN seqno           # 0/1   # 1 = retransmitted SYN segments have different initial seqno
+############################################################################
+
+Layer 7 Set
+-----------
+
+This set includes Layer7 and Application specific information (HTTP, TLS). 
+It is enabled in runtime.conf setting "tcplog_layer7 = 1".
+The Layer 7 set will start at column K (K depending on the
+status of the other stat sets). All the other columns will be relative to K.
+
+###############################################################################
+# C2S # S2C # Short description         # Unit  # Long description            #
+###############################################################################
+# K         # HTTP Request count        # -     # Number of HTTP Requests (GET/POST/HEAD) seen in the C2S direction (for HTTP connections)
+# K+1       # HTTP Response count       # -     # Number of HTTP Responses (HTTP) seen in the S2C direction (for HTTP connections)
+# K+2       # First HTTP Response       # -     # First HTTP Response code seen in the server->client communication (for HTTP connections)
+# K+3       # PSH-separated C2S         # -     # number of push separated messages C2S
+# K+4       # PSH-separated S2C         # -     # number of push separated messages S2C
+# K+5       # TLS Client Hello SNI      # -     # For TLS flows, the server name indicated by the client in the Hello message extensions
+# K+6       # TLS Server Hello SCN      # -     # For TLS flows, the subject CN name indicated by the server in its certificate 
+# K+7       # TLS Client NPN/ALPN       # -     # For TLS flows, a bitmap representing the usage of NPN/ALPN for HTTP2/SPDY negotiation 
+# K+8       # TLS Server NPN/ALPN       # -     # For TLS flows, a bitmap representing the usage of NPN/ALPN for HTTP2/SPDY negotiation
+# K+9       # TLS Client ID reuse       # -     # For TLS flows, indicates that the Client Hello carries an old Session ID
+# K+10      # TLS Client Last Handshake # ms    # For TLS flows, time of Client last packet seen before first Application Data (relative)
+# K+11      # TLS Server Last Handshake # ms    # For TLS flows, time of Server last packet seen before first Application Data (relative)
+# K+12      # TLS Client App Data Time  # ms    # For TLS flows, time between the Client first Application Data message and the first flow segment
+# K+13      # TLS Server App Data Time  # ms    # For TLS flows, time between the Server first Application Data message and the first flow segment
+# K+14      # TLS Client App Data Bytes # bytes # For TLS flows, relative sequence number for the Client first Application Data message
+# K+15      # TLS Server App Data Bytes # bytes # For TLS flows, relative sequence number for the Client first Application Data message
+###############################################################################
+# K+16      # FQDN                      # -     # Fully Qualified Domain Name recovered using DNHunter
+# K+17      # IP of DNS resolver        # -     # IP address of the contacted DNS resolver
+# K+18      # DNS request time          # ms    # unixtime (in ms) of the DNS request 
+# K+19      # DNS response time         # ms    # unixtime (in ms) of the DNS response 
+###############################################################################
+
+NPN (Next Protocol Negotiation) is the old TLS mechanism to negotiate the application layer 
+to be used over TLS, identified by the code 0x3374 followed, possibly, by a list of supported 
+protocols. It has been replaced by ALPN (Application-Layer Protocol Negotiation), RFC 7301,
+identified by the code 0x0010 followed by the explicit list of supported protocols.
+Both options can be used by the browser (client), while the server usually supports only one of them.
+The NPN/ALPN bitmap possible values are the following:
+
+0000 0000
+^^^^ ^^^^
+|||| ||||_____ NPN used, no explicit value negotiated (implicitely SPDY)
+|||| |||______ NPN used, HTTP/1.x negotiated
+|||| ||_______ NPN used, SPDY negotiated
+|||| |________ NPN used, HTTP/2 negotiated
+||||
+||||__________ ALPN used, no explicit value negotiated 
+|||___________ ALPN used, HTTP/1.x negotiated
+||____________ ALPN used, SPDY negotiated
+|_____________ ALPN used, HTTP/2 negotiated
+
+
+Advanced Set
+-----------
+
+This set includes advanced information for the TCP flows, seldom used
+and that must be activated at compile time. 
+It is enabled in runtime.conf setting "tcplog_advanced = 1".
+
+Due to the dependency on compile time options, refer to the header row
+and the source code for the meaning of the additional columns.
+
+*********
+* Notes *
+*********
+
+For advanced users, the current log composition is also encoded as a 'magic number'
+in the first characters of the header line, that starts with "#nn#", 'nn' being
+a bitmask indicating which set were active at the time of the logging. Interested
+users should refer to tstat.h for the bitmask values.
+
+Connection type - col. 42 Core Set (see protocol.h)
+###############################################
+# Bitmask Value # Protocol                    #
+###############################################
+#             0 # Unknown protocol            #
+#             1 # HTTP protocol               #
+#             2 # RTSP protocol               #
+#             4 # RTP protocol                #
+#             8 # ICY protocol                #
+#            16 # RTCP protocol               #
+#            32 # MSN protocol                #
+#            64 # YMSG protocol               #
+#           128 # XMPP protocol               #
+#           256 # P2P protocol                #
+#           512 # SKYPE protocol              #
+#          1024 # SMTP protocol               #
+#          2048 # POP3 protocol               #
+#          4096 # IMAP4 protocol              #
+#          8192 # SSL/TLS protocol            #
+#         16384 # ED2K protocol (obfuscated)  # 
+#         32768 # SSH 2.0/1.99 protocol       # 
+#         65536 # RTMP protocol               # 
+#        131072 # Bittorrent MSE/PE protocol  # 
+###############################################
+
+Since the connection type is a bitmask, it's possible to have combinated
+values. Common combinations are 257 (HTML and P2P), or 16640 (P2P and OBF).
+
+
+P2P type - col. 43 Core Set (see ipp2p_tstat.h)
+##################################################################
+# Bitmask n-th bit   # Internal         # Protocol               #
+##################################################################
+# 1                  # IPP2P_ED2K       # eMule                  #
+# 2                  # IPP2P_DATA_KAZAA # Kazaa Data [*]         #
+# 3                  # IPP2P_DATA_ED2K  # Ed2k Data              #
+# 4                  # IPP2P_DATA_DC    # DirectConnect++ Data[*]#
+# 5                  # IPP2P_DC         # DirectConnect++[*]     #
+# 6                  # IPP2P_DATA_GNU   # Gnutella Data [*]      #
+# 7                  # IPP2P_GNU        # Gnutella [*]           #
+# 8                  # IPP2P_KAZAA      # Kazaa [*]              #
+# 9                  # IPP2P_BIT        # BitTorrent             #
+# 10                 # IPP2P_APPLE      # Apple [*]              #
+# 11                 # IPP2P_SOUL       # SoulSeek [*]           #
+# 12                 # IPP2P_WINMX      # WinMX [*]              #
+# 13                 # IPP2P_ARES       # Ares [*]               #
+# 14                 # IPP2P_MUTE       # Mute [*]               #
+# 15                 # IPP2P_WASTE      # Waste [*]              #
+# 16                 # IPP2P_XDCC       # XDCC [*]               #
+# 17                 # IPP2P_KAD        # eMule KAD              #
+# 18                 # IPP2P_KADU       # Adunanza (eMule mod)   #
+##################################################################
+
+[*] Unless explicitely enabled at compilation time by P2P_OLDPROTO, these 
+obsolete protocols are actually ignored by Tstat.
+
+
+HTTP Web2.0 type - Col 44 Core Set (see struct.h)
+##########################################################################
+# Type  # Internal           # Description                               #
+##########################################################################
+# 1     # HTTP_GET           # Unclassified GET command                  #
+# 2     # HTTP_POST          # Unclassified POST command                 #
+# 3     # HTTP_MSN           # MSN Chat command tunneled over HTTP (POST)#
+# 4     # HTTP_RTMPT         # RTMPT - RTMP over HTTP Tunnel (POST)      #
+# 5     # HTTP_YOUTUBE_VIDEO # YouTube video content download (GET)      #
+# 6     # HTTP_VIDEO_CONTENT # Generic FLV or MP4 video download (GET)   #
+# 7     # HTTP_VIMEO         # Vimeo video content download (GET)        #
+# 8     # HTTP_WIKI          # Wikipedia (GET)                           #
+# 9     # HTTP_RAPIDSHARE    # RapidShare file download (GET)            #
+# 10    # HTTP_MEGAUPLOAD    # MegaUpload file download (GET)            #
+# 11    # HTTP_FACEBOOK      # Facebook-related connections (GET/POST)   #
+# 12    # HTTP_ADV           # Site advertisement (GET)                  #
+# 13    # HTTP_FLICKR        # Flickr photo download (GET)               #
+# 14    # HTTP_GMAPS         # GoogleMaps images (GET)                   #
+# 15    # HTTP_NETFLIX       # Netflix video streaming (GET)             #
+# 16    # HTTP_YOUTUBE_SITE  # YouTube site content download (GET)       #
+# 17    # HTTP_SOCIAL        # Localized social-networking (GET/POST) [+]#
+# 18    # HTTP_FLASHVIDEO    # Generic FLV video download (GET) [=]      #
+# 19    # HTTP_MEDIAFIRE     # MediaFire file download (GET)             #
+# 20    # HTTP_HOTFILE       # Hotfile.com file download (GET)           #
+# 21    # HTTP_STORAGE       # Storage.to file download (GET)            #
+# 22    # HTTP_YOUTUBE_204   # YouTube "pre-loading" (GET) [%]	         #
+# 23    # HTTP_YOUTUBE_VIDEO204    # YouTube "pre-loading" and video (GET)[%]     #
+# 24    # HTTP_YOUTUBE_SITE_DIRECT # YouTube: video request on YouTube site (GET) [~] #
+# 25    # HTTP_YOUTUBE_SITE_EMBED  # YouTube: embedded video request (GET) [~]    #
+# 26    # HTTP_TWITTER       # Twitter unencrypted traffic (GET/POST) [$] #
+# 27    # HTTP_DROPBOX       # Dropbox presence traffic (GET) [^]        #
+##########################################################################
+
+These values are different from 0 only for identified HTTP connections 
+(column no. 42). These constants are also used in the RRD data and in 
+histograms (decreased by one so that HTTP_GET is 0 and HTTP_GMAPS is 13).
+[+] HTTP_SOCIAL is a set of matchings tailored for Nasza-Klasa (PL) and IWIW
+(HU). Since IWIW seems to be based on OpenSocial (http://www.opensocial.org/),
+it should match also generic OpenSocial traffic. Probably not useful outside
+Poland or Hungary.
+[=] HTTP_FLASHVIDEO identify traffic from a few popular flash-based video
+distribution sites.
+[%] HTTP_YOUTUBE_204 and HTTP_YOUTUBE_VIDEO204 are counted as HTTP_YOUTUBE_VIDEO
+in RRDs and histograms (i.e. they are classified in idx4 ). 
+[~] HTTP_YOUTUBE_SITE_DIRECT and HTTP_YOUTUBE_SITE_EMBED are counted as HTTP_YOUTUBE_SITE
+and WEB_OTHER in RRDs and histograms (i.e. they are classified in idx15 ). 
+[$] HTTP_TWITTER refers just to Twitter unencrypted connections, mostly related to
+the Twitter widgets in web pages. HTTP_TWITTER is counted as HTTP_SOCIAL and WEB_SOCIAL in 
+RRDs and histograms (i.e. it is classified in idx16 ).
+[^] HTTP_DROPBOX refers to the presence/keep-alive connections maintained by the
+Dropbox client. Experimental. It is counted as HTTP_GET and WEB_OTHER in RRDs and 
+histograms.
+
+Due to the evolution of the Web, and the shift of traffic to TLS connections, 
+some specific HTTP classifications in column 44 have nowadays mostly a historical 
+reason only.

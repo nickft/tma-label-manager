@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libtstat
+Description: Tstat Shared Library
+Version: 1.0.0
+Libs: -L${libdir} -lm -lpthread -lpcap @RRD_LDLINK@
+Cflags: -I${includedir}

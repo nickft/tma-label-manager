@@ -1,0 +1,128 @@
+# 
+#  This file specifies the filtering rules based on strings to match against the DNS hostnames.
+#  Each row must have an entry <domain.name include>
+#  where domain.name can be any string, and include may be 0 or 1
+#  if include == 1, the matched flow will be dumped
+#  if include == 0, the matched flow will be not dumped.
+#  A wildcard "ANY.ANY" can be used to set default behaviour.
+#  By default, anything that is not matched is dumped (ANY.ANY 1).
+#  Lines starting with '#' are skipped
+#  For example:
+#
+#  ANY.ANY 0
+#  google.com 1
+#  apple.com 1
+#
+#  would dump all flows *google.com and *.apple.com.
+#  The search stops at the first match, so that
+#
+#  ANY.ANY 0
+#  mail.google.com 0
+#  google.com 1
+#
+#  results in dumping only *google.com but not *mail.google.com 
+#
+#
+
+ANY.ANY	1
+mail.google.com 0
+fbcdn.net	0
+facebook.com	0
+google.com	0
+zynga.com	0
+akamaihd.net	0
+doubleclick.net	0
+libero.it	0
+google.it	0
+microsoft.com	0
+yahoo.com	0
+youtube.com	0
+gstatic.com	0
+akamai.net	0
+imrworldwide.com	0
+avast.com	0
+ytimg.com	0
+twitter.com	0
+virgilio.it	0
+zgncdn.com	0
+msn.com	0
+xhamster.com	0
+apple.com	0
+alice.it	0
+criteo.com	0
+2mdn.net	0
+atdmt.com	0
+yieldmanager.com	0
+yimg.com	0
+live.com	0
+kaspersky.com	0
+altervista.org	0
+plug.it	0
+googlesyndication.com	0
+googleapis.com	0
+redtubefiles.com	0
+neodatagroup.com	0
+youporn.com	0
+weborama.fr	0
+amazonaws.com	0
+ebaystatic.com	0
+shinystat.com	0
+tiscali.it	0
+quantserve.com	0
+adnxs.com	0
+googleadservices.com	0
+photorec.it	0
+scorecardresearch.com	0
+aruba.it	0
+googleusercontent.com	0
+easythumbhost.com	0
+symantecliveupdate.com	0
+mediaset.it	0
+repubblica.it	0
+facebook.net	0
+fastwebnet.it	0
+cloudfront.net	0
+xvideos.com	0
+phncdn.com	0
+deejay.it	0
+akadns.net	0
+blogspot.com	0
+biffigioielli.com	0
+iol.it	0
+avg.com	0
+kingdomsofcamelot.com	0
+dotandad.com	0
+webtrendslive.com	0
+lastampa.it	0
+icloud.com	0
+akamaiedge.net	0
+king.com	0
+rubiconproject.com	0
+verisign.com	0
+bluelithium.com	0
+addthis.com	0
+xiti.com	0
+msads.net	0
+cssportal.it	0
+trendmicro.com	0
+videosz.com	0
+tradedoubler.com	0
+youjizz.com	0
+farmville.com	0
+trollandtoad.com	0
+dyndns.org	0
+gmail.com	0
+adform.net	0
+kataweb.it	0
+addthisedge.com	0
+vodafone.it	0
+smokingpalace.net	0
+wooga.com	0
+trafficfactory.biz	0
+grepolis.com	0
+hotmail.com	0
+tumblr.com	0
+contentabc.com	0
+blogspot.it	0
+sieropositivo.it	0
+windowsupdate.com	0

@@ -1,0 +1,102 @@
+# Source Files
+HDR_FILES = \
+    $(top_srcdir)/tstat/compress.h \
+    $(top_srcdir)/tstat/dagtools.h \
+    $(top_srcdir)/tstat/dump.h \
+    $(top_srcdir)/tstat/file_formats.h \
+    $(top_srcdir)/tstat/freelists.h\
+    $(top_srcdir)/tstat/histo.h\
+    $(top_srcdir)/tstat/ipp2p_tstat.h\
+    $(top_srcdir)/tstat/ipv6.h\
+    $(top_srcdir)/tstat/jabber.h\
+    $(top_srcdir)/tstat/msn.h\
+    $(top_srcdir)/tstat/naivebayes.h\
+    $(top_srcdir)/tstat/names.h\
+    $(top_srcdir)/tstat/param.h\
+    $(top_srcdir)/tstat/plugin.h\
+    $(top_srcdir)/tstat/protocol.h\
+    $(top_srcdir)/tstat/rrdtool.h\
+    $(top_srcdir)/tstat/rtp.h\
+    $(top_srcdir)/tstat/skype.h\
+    $(top_srcdir)/tstat/struct.h\
+    $(top_srcdir)/tstat/tcpdump.h\
+    $(top_srcdir)/tstat/tcpL7.h\
+    $(top_srcdir)/tstat/videoL7.h\
+    $(top_srcdir)/tstat/http.h\
+    $(top_srcdir)/tstat/tstat.h\
+    $(top_srcdir)/tstat/version.h\
+    $(top_srcdir)/tstat/ymsg.h\
+    $(top_srcdir)/tstat/inireader.h\
+    $(top_srcdir)/tstat/p2p.h\
+    $(top_srcdir)/tstat/l7types.h\
+    $(top_srcdir)/tstat/options.h\
+    $(top_srcdir)/tstat/dns_namefilter.h\
+    $(top_srcdir)/tstat/dns_cache.h\
+    $(top_srcdir)/tstat/dnscache/DNSEntry.h\
+    $(top_srcdir)/tstat/dnscache/DNSCache.h\
+    $(top_srcdir)/tstat/dnscache/DNSEntry_ipv6.h\
+    $(top_srcdir)/tstat/dnscache/DNSCache_ipv6.h\
+    $(top_srcdir)/tstat/tstat_android_ether.h\
+    $(top_srcdir)/tstat/tstat_android_tcp.h\
+    $(top_srcdir)/tstat/crypto.h\
+    $(top_srcdir)/tstat/panon.h\
+    $(top_srcdir)/tstat/base64.h\
+    $(top_srcdir)/tstat/rijndael.h\
+    $(top_srcdir)/tstat/uthash.h\
+    $(top_srcdir)/tstat/globals.h
+
+CFILES=$(top_srcdir)/tstat/compress.c \
+       $(top_srcdir)/tstat/etherpeek.c \
+       $(top_srcdir)/tstat/mfiles.c \
+       $(top_srcdir)/tstat/names.c \
+       $(top_srcdir)/tstat/netm.c \
+       $(top_srcdir)/tstat/output.c \
+       $(top_srcdir)/tstat/print.c \
+       $(top_srcdir)/tstat/rexmit.c \
+       $(top_srcdir)/tstat/snoop.c \
+       $(top_srcdir)/tstat/nlanr.c \
+       $(top_srcdir)/tstat/tcpdump.c \
+	   $(top_srcdir)/tstat/addresses.c \
+       $(top_srcdir)/tstat/ipv6.c \
+       $(top_srcdir)/tstat/tcp.c \
+       $(top_srcdir)/tstat/udp.c \
+       $(top_srcdir)/tstat/rtp.c \
+       $(top_srcdir)/tstat/plugin.c \
+       $(top_srcdir)/tstat/ns.c \
+       $(top_srcdir)/tstat/erf.c \
+       $(top_srcdir)/tstat/erf_live.c \
+       $(top_srcdir)/tstat/netscout.c \
+       $(top_srcdir)/tstat/version.c \
+       $(top_srcdir)/tstat/histo.c \
+       $(top_srcdir)/tstat/freelists.c \
+       $(top_srcdir)/tstat/rrd.c \
+       $(top_srcdir)/tstat/dag.c \
+       $(top_srcdir)/tstat/DPMI.c \
+       $(top_srcdir)/tstat/tstat.c \
+       $(top_srcdir)/tstat/skype.c \
+       $(top_srcdir)/tstat/naivebayes.c \
+       $(top_srcdir)/tstat/msn.c \
+       $(top_srcdir)/tstat/misc.c \
+       $(top_srcdir)/tstat/jabber.c \
+       $(top_srcdir)/tstat/ymsg.c \
+       $(top_srcdir)/tstat/ipp2p_tstat.c \
+       $(top_srcdir)/tstat/p2p.c \
+       $(top_srcdir)/tstat/tcpL7.c \
+       $(top_srcdir)/tstat/videoL7.c \
+       $(top_srcdir)/tstat/http.c \
+       $(top_srcdir)/tstat/web.c \
+       $(top_srcdir)/tstat/dns_cache.c\
+       $(top_srcdir)/tstat/dns_namefilter.c\
+       $(top_srcdir)/tstat/dnscache/DNSEntry.cpp\
+       $(top_srcdir)/tstat/dnscache/DNSCache.cpp\
+       $(top_srcdir)/tstat/dnscache/DNSEntry_ipv6.cpp\
+       $(top_srcdir)/tstat/dnscache/DNSCache_ipv6.cpp\
+       $(top_srcdir)/tstat/dump.c\
+       $(top_srcdir)/tstat/options.c\
+       $(top_srcdir)/tstat/inireader.c\
+       $(top_srcdir)/tstat/tstat_android_ether.c\
+       $(top_srcdir)/tstat/rijndael.c\
+       $(top_srcdir)/tstat/panon.c\
+       $(top_srcdir)/tstat/crypto.c\
+       $(top_srcdir)/tstat/globals.c\
+       $(top_srcdir)/tstat/tls_services.c

@@ -1,0 +1,74 @@
+Notes on Tstat Integration and Export Toward RRDTools 
+------------------------------------------------------
+
+
+
+
+1) Changes
+Changes have been kept as limited as possible; only
+the following files have been changed: 
+
+	{histo,tstat}.{c,h}
+	trace.c  	       -> to give the opportunity 
+				  of using tstat as a pure 
+				  rrd-engine (i.e., no logfile,
+				  no fancy histograms)
+
+Changes are enclosed in a RRDtool section 
+	/*------------*/ 
+	/* RRDtool    */
+	...
+	changes
+	...
+	/*------------*/ 
+
+
+2) Parameters
+Only one text-file should be edited, in order to activate
+rrdtool integration, which define the Tstat parameters that
+have to be gauged.
+
+The parameters for the temporal averages are hard-coded into 
+rrdtool.h to mimik MMRTG behavior.
+rrdtools command can either be called via system() or exec()
+depending on RRDTOOL_SYSTEM value on rrdtool.h (default 0)
+Note that RRDTOOL_SYSTEM may be blocking.
+
+
+3) Usage
+3.0) -S
+turns tstat in a pure-rrd engine: since the output size
+is bounded, this means that tstat can be used on-line
+for years (-S is something like -s/dev/null but should 
+be quicker) without ever posing scalability problems
+
+3.1) -Rconf
+specify the configuration file for integration with RRDTool.
+The rrdconf file should contain one line for each of the Tstat
+parameters that have to be integrated into a RR-database; each
+line allows to specify which statistical properties of the variable	  
+has to be tracked as follows:			   
+
+	  tstat_var1 avg min max stdev var idx:e,f,g,h prc:i,j,k	  
+
+where [avg,min,max,stdev,var,idx,prc] are keywords;
+the list of indexes (e.g., TCP ports), values (e.g., packet size)
+and percentiles are comma separated. The following is a short example:
+
+	  #This file is Tstat's rrdconf 
+	  #inspect packet size averge, stdev, specific values and 95th percentile 		   
+	  ip_len_usc avg stdev idx:46,512,1500 prc:95
+	  #		   
+	  #inspect tcp port of index 25 and 80	   
+	  tcp_port_syn_src_ent idx:25,80
+	  #		   
+	  #best approximation of rtt distribution		   
+	  rtt_avg_usc avg stdev prc:50,90,95,99,99.9
+
+An example is provided: tstat-conf/rrd.conf
+
+3.2) -rpath
+path to use to create/update the RR database: this should better
+be outside the directory tree created by Tstat, and may be placed
+somewhere accessible from the Web server for easy integration with RRD
+CGI-like interface. 

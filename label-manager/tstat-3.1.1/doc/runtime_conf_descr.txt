@@ -1,0 +1,185 @@
+=head1 Runtime Module
+
+This module has been developed with the specific target to try to control the disk
+occupation and to have a minimal interface
+to execution process to enable/disable some feature without restarting it. 
+In particular, the system controls two specific outputs: the writing of log files and packet level traces, so
+is possible to disable the writing of logs (histograms, RRD and all the others) if they
+became to bigs, and to dynamically change the set of packet level traces to collect. 
+
+The module works with simple polling system that is it periodically tests if a configuration file,
+specified with the C<-T> option when Tstat is executed, is changed from the previous check
+and in this case, the new configuration replace the previous one.
+The polling process is controlled by the global constants C<Runtime_Config_Idle> and 
+C<Runtime_Mtime_Counter>, that can be overriden at startup with the C<-G> option, as described
+in the L<Global Constants> section.
+
+The configuration file has an C<ini> file syntax:
+
+    > cat tstat-conf/runtime.conf
+    # print logs on disk
+    [log]
+    histo_engine = 0    # logs created by histogram engine
+    rrd_engine = 0      # logs created by rrd engine
+    log_tcp_complete = 0            # tcp connections correctly terminated
+    log_tcp_nocomplete = 0          # tcp connections not properly terminated
+    log_udp_complete = 0            # udp flows
+    log_mm_complete = 0             # multimedia 
+    log_skype_complete = 0          # skype traffic
+    log_chat_complete = 0           # MSN/Yahoo/Jabber chat flows
+    log_chat_messages = 0           # MSN/Yahoo/Jabber chat messages
+    log_video_complete = 0          # video (YouTube and others)
+    log_http_complete = 0           # all the HTTP requests/responses
+
+    # log options
+    [options]
+    tcplog_end_to_end = 0	# End_to_End set of measures (RTT, TTL)
+    tcplog_layer7 = 0		# Layer7 set of measures (SSL cert., message counts)
+    tcplog_p2p = 0		# P2P set of measures (P2P subtype and ED2K data)
+    tcplog_options = 0		# TCP Options set of measures
+    tcplog_advanced = 0		# Advanced set of measures
+    httplog_full_url = 0 	# Partial (=1) or full (=2) URLs in log_http_complete
+
+    videolog_end_to_end = 0	# TCP End_to_End set of measures (RTT, TTL)
+    videolog_layer7 = 0		# Layer7 set of measures (SSL cert., message counts)
+    videolog_videoinfo = 0	# Additional video info (resolution, bitrate)
+    videolog_youtube = 0	# YouTube specific information
+    videolog_options = 0	# TCP Options set of measures
+    videolog_advanced = 0	# Video-related Advanced mesurements (rate)
+
+    # protocols to dump
+    [dump]
+    snap_len = 0        # max num of bytes to dump from ip hdr (included)
+                        # 0 == all bytes
+    slice_win = 0       # dimension (in secs) of the dumping window
+                        # used to slice the input traffic in different traces
+                        # 0 == no slicing
+
+    udp_dns = 0
+    udp_rtp = 0
+    udp_rtcp = 0
+    udp_edk = 0
+    udp_kad = 0
+    udp_kadu = 0        # KadU network
+    udp_okad = 0        # obfuscated kad
+    udp_gnutella = 0
+    udp_bittorrent = 0
+    udp_dc = 0
+    udp_kazaa = 0
+    udp_pplive = 0
+    udp_sopcast = 0
+    udp_tvants = 0
+    udp_ppstream = 0
+    udp_teredo = 0
+    udp_vod = 0
+    udp_sip = 0
+    udp_unknown = 0    # all the udp traffic that the DPI doesn't recognize
+
+    tcp_videostreaming = 0 
+
+    ip_complete = 0    # all the ip traffic (not consider L4 type and if it's used)
+    udp_complete = 0   # all the udp traffic
+    tcp_complete = 0   # all the tcp traffic
+
+    udp_maxpackets = 0
+    udp_maxbytes = 0
+    tcp_maxpackets = 0
+    tcp_maxbytes = 0
+
+    dns_filter = 0     # enable the dns filtering
+    
+    stop_dumping_mask = 0  # bitmask to control the dumping of tcp packets
+                           # based on flow classification
+
+
+The file in composed of the three sections C<log>, C<options>, and C<dump> which indicate which
+type of log and dump trace to create, and additional information on the log content.
+Except for a few exceptions, all features are on/off type i.e. 1 and 0 values are used to 
+enable/disable them. One exception is C<snap_len>, used to indicate the maximum number of bytes
+dump from the input packet starting from IP level included. For example, supposing
+to have a simple IP + UDP packet, using C<snap_len> = 40 it will be written a
+packet of 54 bytes
+
+    14 (bogus ethernet) + 20 (IP) + 8 (UDP) + 12 (payload)
+
+For UDP traffic it can be specified a set of applications so to have a specific
+dump trace for each application of interest. The unknown traffic i.e. the traffic
+that the Tstat's DPI is not able to identify, is placed in a separated trace.
+For example, using the following configuration
+
+    udp_rtp = 1
+    udp_edk = 1
+    udp_bittorrent = 1
+    udp_unknown = 1    
+
+it's expected to have 4 traces i.e. three protocols/applications (RTP, eMule, Bittorrent)
+and the unknown (for example DNS traffic).
+
+Classified TCP complete flows cannot be "safely" dumped, since classification
+happens after the 3-way handshaking finished, so saved flows would be
+incomplete. 
+C<tcp_videostreaming> is an exception, used to dump TCP flows that were classified
+as video through the Streaming DPI engine (the ones logged in
+C<log_video_complete>), even if the 3-way handshaking and the first flow payload
+packets would be skipped. This could be activated if you're interested in performing
+a secondary analysis on characteristics of the video stream.
+
+Beside the traces at application level, it's possible to create three type of aggregated
+traces. In particular, C<udp_complete> is all the UDP traffic (both applications specific and unknown),
+C<tcp_complete> is all the TCP traffic, while
+C<ip_complete> refers to all the traffic that use IP as level 3 without considering the level 4. 
+In other words, C<ip_complete> is the aggregation of TCP, UDP and all the other network protocols that use directly IP
+(ICMP, IPIP, ESP, ...). The three options are NOT to complementary so
+it's possible to enable all of them contemporary but this obviously means that a TCP/UDP packet
+it will appear in more than one trace so particular attention should be taken.
+
+When dumping all TCP (C<tcp_complete>) or UDP (C<udp_complete>) traffic, 
+it is possible to limit the dumping of each
+flow to either a maximum number of packets or a maximum number of bytes trasferred.
+For example, to save just the first 30000 bytes or the first 30 segments of
+each TCP flow (whichever condition if reached first), you can use
+ 
+    snap_len = 0
+    tcp_complete = 1
+    tcp_maxpackets = 30
+    tcp_maxbytes = 30000
+
+C<udp_maxpackets> and C<udp_maxbytes> provide the same functionality for UDP flows.
+If both C<xxx_maxpackets> and C<xxx_maxbytes> are set to 0, the complete TCP/UDP 
+flows will be saved, with no size limitation.
+
+C<dns_filter> enables the filter based on DNS names requested by clients.
+You can see the tstat-conf/DNS_filter_example.txt file for more details.
+A filename must be provided with the C<-F> command line option, and its content cannot 
+be changed at runtime.
+
+C<stop_dumping_mask> is a bitmask that is used to stop dumping tcp packets of flows we
+are not interested to.
+It is a bitmask based on protocol.h types that the con_type can take.
+Setting this to 0 will keep logging everything. Setting a bit to 1 will stop logging
+packets of those protocol as soon as the classifier set those flags (e.g., setting it to
+1025 (1+1024), all http and smtp traffic will be discarded). As for other parameters, the
+value can be set either as a decimal number, or as an hexadecimal number (prefixing it
+with 0x).
+Note that we cannot discard those packets of a flow that we have seen before
+actually identifying the protocol. For example, three-way-handshake segments will be
+always there.
+Examples:
+
+     stop_dumping_mask = 262143  # => 11 1111 1111 1111 1111 discard everything 
+                                 #                           we know except UNKNOWN
+     stop_dumping_mask = 262142  # => 11 1111 1111 1111 1110 log only UNKNOWN and HTTP
+     stop_dumping_mask = 0x3DFFF # => 11 1101 1111 1111 1111 log only UNKNOWN and SSL/TLS
+     stop_dumping_mask = 1       # => 00 0000 0000 0000 0001 log everything which is not HTTP
+     stop_dumping_mask = 0       # => log everything
+
+During the runtime execution of Tstat, the configuration file is controlled periodically
+looking for changes in the options. In this way, when Tstat is used for online monitoring, 
+is possible to interact with the dumping module without the need to restart the program. 
+When a change is identified a new C<tracesNN> output directory is created
+in the root output directory to collect all the new traces 
+and is also generated a file called C<log.txt> that indicate the dump configuration 
+used for that particular dump.
+Since the parameters in the C<options> section control the output format of the log files,
+when a change is sensed to any of them, the old log files are closed, and a new output directory
+is created.

@@ -1,0 +1,114 @@
+Tstat produces a "log_streaming_complete" files which logs every HTTP Video
+connection that has been tracked. Currently are classified as Video, 
+HTTP connections based on 2 distinguished approaches:
+1) Value of Content-Type information in the HTTP's header 
+2) Signature matching in the video payload, to identify the video container. 
+It is generated only if STREAMING_CLASSIFIER is defined. 
+
+The log contains a subset of the data already reported in the TCP 
+log_tcp_complete log, with additional columns that are mostly relevant for
+the video characterization (duration,bitrate,size..).
+For the semantics of the TCP connections and the meaning of the specific fields,
+you can refer to the description for the log_tcp_complete file.
+
+Here it follows a brief description of the columns.
+
+############################################################################
+# C2S # S2C # Short desc.            # Unit  # Long description                       
+############################################################################
+#  1  # 30  # Client/Server IP addr  # -     # IP addresses of the client/server
+#  2  # 31  # Client/Server TCP port # -     # TCP port addresses for the client/server
+#  3  # 32  # packets                # -     # total number of packets observed form the client/server
+#  4  # 33  # RST sent               # 0/1   # 0 = no RST segment has been sent by the client/server
+#  5  # 34  # unique bytes           # bytes # number of bytes sent in the payload
+#  6  # 35  # data pkts              # -     # number of segments with payload
+#  7  # 36  # data bytes             # bytes # number of bytes transmitted in the payload, including retransmissions
+#  8  # 37  # rexmit pkts            # -     # number of retransmitted segments
+#  9  # 38  # rexmit bytes           # bytes # number of retransmitted bytes
+# 10  # 39  # out seq pkts           # -     # number of segments observed out of sequence
+# 11  # 40  # FIN count              # -     # number of FIN segments observed (including rtx)
+# 12  # 41  # max seg size           # bytes # Maximum segment size observed
+# 13  # 42  # cwin max               # bytes # Maximum in-flight-size computed as the difference between the largest sequence number so far, and the corresponding last ACK message on the reverse path. It is an estimate of the congestion window.
+# 14  # 43  # cwin min               # bytes # Minimum in-flight-size [bytes]
+# 15  # 44  # Average rtt            # ms    # Average RTT computed measuring the time elapsed between the data segment and the corresponding ACK
+# 16  # 45  # rtt min                # ms    # Minimum RTT observed during connection lifetime
+# 17  # 46  # rtt max                # ms    # Maximum RTT observed during connection lifetime
+# 18  # 47  # Stdev rtt              # ms    # Standard deviation of the RTT
+# 19  # 48  # rtt count              # -     # Number of valid RTT observation
+# 20  # 49  # ttl_min                # -     # Minimum Time To Live
+# 21  # 50  # ttl_max                # -     # Maximum Time To Live
+# 22  # 51  # Rate Samples           # -     # Number of samples C2S/S2C in the rate measurement
+# 23  # 52  # Zero Samples           # -     # Number of empty samples C2S/S2C in the rate measurement
+# 24  # 53  # Zero Streak	     # -     # Maximum number of consecutive C2S/S2C empty samples
+# 25  # 54  # Average rate	     # kbps  # Average rate in the C2S/S2C direction
+# 26  # 55  # Stdev rate	     # kbps  # Standard deviation rate in the C2S/S2C direction
+# 27  # 56  # min rate	             # -     # Minimum (non zero) rate sample
+# 28  # 57  # max rate	             # -     # Maximum rate sample
+# 29  # 58  # Src Internal           # 0/1   # 0 = external ip address, 1 = internal ip address 
+############################################################################
+# 59  # First time	             # ms    # Flow first packet absolute time (epoch)
+# 60  # Last time	             # ms    # Flow last segment absolute time (epoch)
+# 61  # Completion time              # ms    # Flow duration since first packet to last packet
+# 62  # C first payload              # ms    # Client first segment with payload since the first flow segment
+# 63  # S first payload              # ms    # Server first segment with payload since the first flow segment
+# 64  # C last payload               # ms    # Client last segment with payload since the first flow segment
+# 65  # S last payload               # ms    # Server last segment with payload since the first flow segment
+# 66  # C first ack            	     # ms    # Client first ACK segment (without SYN) since the first flow segment
+# 67  # S first ack                  # ms    # Server first ACK segment (without SYN) since the first flow segment
+# 68  # Connection type              # -     # Bitmask stating the connection type (by TCPL7 payload inspection engine). See protocol.h
+# 69  # P2P type	             # -     # Type of P2P protocol, as identified by the IPP2P engine. See ipp2p_tstat.h 
+# 70  # HTTP type                    # -     # For HTTP flows, the identified Web2.0 content. See the http_content enum in struct.h
+# 71  # HTTP Response                # -     # First HTTP Response code seen in the server->client communication
+############################################################################
+# 72  # Video ID16	             # -     # 16-char YouTube video identifier, '--' otherwise
+# 73  # Video ID11	             # -     # 11-char YouTube video request ID if YOUTUBE_REQUEST_ID is defined, '--' otherwise
+# 74  # Video Format	             # -     # YouTube Video Format code [*], '--' otherwise.
+# 75  # Begin Offset	             # ms    # Playback offset for the Youtube video, 0 otherwise
+############################################################################
+# 76  # Video Content-Type           # -     # The identified video format, based on the HTTP Content-Type information. See (1) for the description
+# 77  # Video Payload                # -     # The identified video format, based on the video payload information. See (1) for the description
+############################################################################
+# 78  # Video duration	             # s     # Video duration as indicated in the payload [+]
+# 79  # Video total datarate         # kbps  # Total data rate as indicated in payload [+*]
+# 80  # Video width                  # pixel # Video width as indicated in the payload [+]
+# 81  # Video height                 # pixel # Video heigth as indicated in the payload [+]
+############################################################################
+# 83  # FQDN                         # -     # Fully Qualified Domain Name recovered using DNHunter
+# 84  # IP of DNS resolver           # -     # IP address of the contacted DNS resolver
+# 85  # DNS request time             # ms    # unixtime (in ms) of the DNS request 
+# 86  # DNS response time            # ms    # unixtime (in ms) of the DNS response 
+
+VIDEO format - col. 76/77 (1)
+###################################################################################################################
+# Value # VIDEO FORMAT    # Description                       							  #
+###################################################################################################################
+#     0 # NOT_DEFINED     # Unclassified or not video                                                             #
+#     1 # FLV             # Adobe Flash Video container 							  #
+#     2 # MP4             # MPEG-4 video, including F4V format and fragmented MP4 [-]				  #
+#     3 # AVI             # AVI video format and DivX media format						  #
+#     4 # WMV             # Microsoft Media Video File (WMV) and ASF content					  #
+#     5 # MPEG            # MPEG-1, MPEG-2 and VOB video [~]							  #
+#     6 # WEBM            # Video format based on VP8 codec 							  #
+#     7 # 3GPP            # 3rd Generation Partnership Project (3GPP). The releases 5 and 6 are classified as MP4 #
+#     8 # OGG             # Ogg Vorbis Codec compressed Multimedia file						  #
+#     9 # QUICKTIME       # Video exported with QuickTime Apple Inc software [#]                                  #
+#    10 # ASF             # ASF control packets (ASF video are generally classified as WMV)                       #
+#    12 # HLS             # HTTP Live Streaming                                                                   #
+#    11 # UNKNOWN         # Other videos formats or Content-Type values like 'video/*'                            #
+###################################################################################################################
+
+
+[*] The YouTube video format is the 'fmt/itag' value indicated in 
+http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs 
+Common values are 34 (360p FLV), 35 (480p FLV), and 22 (720p MP4).
+[+] Values reported only for FLV, MP4. 
+   [+*] Value not reported for AVI format
+
+[-] F4V and FLV differences are summarized in
+http://knol.google.com/k/what-is-the-difference-flash-video-flv-f4v-and-h-264#
+
+[~] The signatures for MPEG encoded videos are based on the rules described in:
+http://www.garykessler.net/library/file_sigs.html
+
+[#] The classification relays only on the Content-Type value announce by the server.
+    Currently the payload matching is not supported for this video format.

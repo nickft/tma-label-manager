@@ -1,0 +1,285 @@
+Tstat produces a "log_video_complete" file which logs every TCP Video
+connection that has been tracked. Currently are classified as Video 
+the RTMP connections, SSL/TLS connections associated to YouTube, and 
+HTTP connections based on 2 distinguished approaches:
+1) HTTP request URL matching (Tstat HTTP engine)
+2) HTTP response DPI (Tstat Streaming Classifier engine)
+
+The Tstat HTTP engine (1) classifies relevant video-related HTTP connections 
+(YouTube, Vimeo, generic FLV/MP4, VOD and FlashVideo) mostly based on simple
+URL matching.
+The Tstat Streaming Classifier engine (2), currently activated only if 
+STREAMING_CLASSIFIER is defined, classifies HTTP connections 
+based on 2 distinguished approaches:
+1) Value of Content-Type information in the HTTP's header 
+2) Signature matching in the video payload, to identify the video container.
+
+Since YouTube transfers (as of May 2014) a large part of traffic over SSL/TLS,
+we include in log_video_complete also those SSL/TLS connection for which the
+client requested (in the TLS handshake) a site name matching "*.youtube.com",
+"*.youtube-nocookie.com", and "*.googlevideo.com". For these connections, 
+obviously, no video specific information can be reported. 
+The requested site name is included in the log only if the TCP Layer 7 set is enabled
+(but the connections are always included).
+
+The log contains a composition of measurement sets already included in the TCP 
+log_tcp_complete log, and other sets specific to video streams. The 
+presence of the various sets is controlled by variables in the [options] 
+section of runtime.conf
+The order of the sets is hardcoded, so the structure of log_video_complete is always:
+ - Core TCP set
+ - TCP End to End set (optional)
+ - Video Core set
+ - Video Information set (optional)
+ - YouTube Information set (optional)
+ - Video Advanced set (optional)
+ - TCP Options set (optional)
+ - TCP Layer7 set (optional)
+
+
+Here it follows a brief description of the columns for each set, considering 
+that often the actual column number will depend on the mix of sets, and 
+you should refer to the header line in the file to identify the current log 
+content. 
+Moreover, for the description of TCP specific sets you can refer to 
+the description for the log_tcp_complete file.
+
+Core/Basic Set
+--------------
+
+This set contains the basic information for all TCP flows, it is always 
+included and cannot be disactivated in runtime.conf.
+It is composed by the Core log_tcp_complete set and Core video information.
+
+For the sake of information we report here the columns in the Core TCP set, 
+pointing to the log_tcp_complete file description for further details.
+
+############################################################################
+# C2S # S2C # Short description      # Unit  # Long description            #
+############################################################################
+#  1  # 15  # Client/Server IP addr  # -     # IP addresses of the client/server
+#  2  # 16  # Client/Server TCP port # -     # TCP port addresses for the client/server
+#  3  # 17  # packets                # -     # total number of packets observed form the client/server
+#  4  # 18  # RST sent               # 0/1   # 0 = no RST segment has been sent by the client/server
+#  5  # 19  # ACK sent               # -     # number of segments with the ACK field set to 1
+#  6  # 20  # PURE ACK sent          # -     # number of segments with ACK field set to 1 and no data
+#  7  # 21  # unique bytes           # bytes # number of bytes sent in the payload
+#  8  # 22  # data pkts              # -     # number of segments with payload
+#  9  # 23  # data bytes             # bytes # number of bytes transmitted in the payload, including retransmissions
+# 10  # 24  # rexmit pkts            # -     # number of retransmitted segments
+# 11  # 25  # rexmit bytes           # bytes # number of retransmitted bytes
+# 12  # 26  # out seq pkts           # -     # number of segments observed out of sequence
+# 13  # 27  # SYN count              # -     # number of SYN segments observed (including rtx)
+# 14  # 28  # FIN count              # -     # number of FIN segments observed (including rtx)
+############################################################################
+# 29        # First time abs         # ms    # Flow first packet absolute time (epoch)
+# 30        # Last time abs          # ms    # Flow last segment absolute time (epoch)
+# 31        # Completion time        # ms    # Flow duration since first packet to last packet
+# 32        # C first payload        # ms    # Client first segment with payload since the first flow segment
+# 33        # S first payload        # ms    # Server first segment with payload since the first flow segment
+# 34        # C last payload         # ms    # Client last segment with payload since the first flow segment
+# 35        # S last payload         # ms    # Server last segment with payload since the first flow segment
+# 36        # C first ack            # ms    # Client first ACK segment (without SYN) since the first flow segment
+# 37        # S first ack            # ms    # Server first ACK segment (without SYN) since the first flow segment
+# 38        # C Internal             # 0/1   # 1 = client has internal IP, 0 = client has external IP
+# 39        # S Internal             # 0/1   # 1 = server has internal IP, 0 = server has external IP
+# 40        # C anonymized           # 0/1   # 1 = client IP is CryptoPAn anonymized
+# 41        # S anonymized           # 0/1   # 1 = server IP is CryptoPAn anonymized
+############################################################################
+# 42        # Connection type        # -     # Bitmap stating the connection type as identified by TCPL7 inspection engine (see protocol.h)
+# 43        # P2P type               # -     # Type of P2P protocol, as identified by the IPP2P engine (see ipp2p_tstat.h)
+# 44        # HTTP type              # -     # For HTTP flows, the identified Web2.0 content (see the http_content enum in struct.h)
+############################################################################
+
+For (partial) compatibility with the log_tcp_complete file structure, 
+the position of the columns for Core Video measurements, will depend on the presence
+of other TCP measurements sets, even if they will always appear in the file.
+
+The Core Video set will start at column X (X depending on the
+status of other video stat set). All the other columns will be relative to X
+
+############################################################################
+# X   # Video Content-Type           # -     # The identified video format, based on the HTTP Content-Type information. See (1) for the description
+# X+1 # Video Payload                # -     # The identified video format, based on the video payload information. See (1) for the description
+# X+2 # Video ID16/46                # -     # 16-char or 46-char YouTube video identifier, '--' otherwise
+# X+3 # Video Format                 # -     # YouTube Video Format code [*], '--' otherwise.
+############################################################################
+
+Video E2E stat set
+------------
+
+This set includes measures about RTT and TTL for TCP connections and it's
+identical to the E2E set in log_tcp_complete. 
+It is enabled in runtime.con setting "videolog_end_to_end = 1".
+
+Refer to the log_tcp_complete description for details.
+
+Video Information Set
+---------------------
+
+This set includes information about video duration and resolution, as extracted
+by the video header metadata by the Video Streaming engine. 
+It is enabled in runtime.con setting "videolog_videoinfo = 1".
+
+The Video Information set will start at column X (X depending on the
+status of other video stat set). All the other columns will be relative to X
+
+############################################################################
+# X   # Video duration               # s     # Video duration as indicated in the payload [+]
+# X+1 # Video total datarate         # kbps  # Total data rate as indicated in payload [+*]
+# X+2 # Video width                  # pixel # Video width as indicated in the payload [+]
+# X+3 # Video height                 # pixel # Video heigth as indicated in the payload [+]
+############################################################################
+
+YouTube Information Set
+---------------------
+
+This set includes additional information about YouTube video and connections,
+as extracted by the URLs by the Tstat HTTP engine. 
+It is enabled in runtime.con setting "videolog_youtube = 1".
+Basic YouTube info (video ID and video format) is included in the Core Video set.
+
+The YouTube Information set will start at column X (X depending on the
+status of other video stat set). All the other columns will be relative to X
+
+############################################################################
+# X   # Video ID11                   # -     # 11-char YouTube video request ID if YOUTUBE_REQUEST_ID is defined, '--' otherwise
+# X+1 # Begin Offset                 # ms    # Playback offset for the Youtube video, 0 otherwise
+# X+2 # Redir Mode                   # -     # Server Redirection Type [=]
+# X+3 # Redir Count                  # -     # Redirection counter [=]
+# X+4 # Mobile Device                # -     # Type of mobile device 0=Desktop 1=Other 2=Apple iOS 3=Android
+# X+5 # Streaming                    # -     # Video streaming classification [&]
+############################################################################
+
+Video TCP Options set
+---------------
+
+This set includes specific TCP protocol statistics and it's
+identical to the TCP Options set in log_tcp_complete. 
+It is enabled in runtime.con setting "videolog_options = 1".
+
+Refer to the log_tcp_complete description for details.
+
+Video TCP Layer 7 Set
+---------------------
+
+This set includes TCP Layer7 and Application specific information (HTTP, TLS)
+and it's identical to the TCP Layer7 set in log_tcp_complete. 
+It is enabled in runtime.con setting "videolog_layer7 = 1".
+TLS information is relevant only for YouTube-related TCP flows.
+
+Refer to the log_tcp_complete description for details.
+
+Also the Video TCP Layer 7 set will always be printed as the last information 
+in each row.
+
+Video Advanced set
+------------------
+
+This set includes advance information for the Video flows, mostly
+related to the video transfer bitrate.  
+It is enabled in runtime.con setting "videolog_advanced = 1".
+
+The Video Advanced set will start at column X (X depending on the
+status of other video stat set). All the other columns will be relative to X
+
+##############################################################################
+# C2S  # S2C  # Short description      # Unit  # Long description            #
+##############################################################################
+# X    # X+7  # Rate Samples           # -     # Number of samples C2S/S2C in the rate measurement
+# X+1  # X+8  # Zero Samples           # -     # Number of empty samples C2S/S2C in the rate measurement
+# X+2  # X+9  # Zero Streak            # -     # Maximum number of consecutive C2S/S2C empty samples
+# X+3  # X+10 # Average rate           # kbps  # Average rate in the C2S/S2C direction
+# X+4  # X+11 # Stdev rate             # kbps  # Standard deviation rate in the C2S/S2C direction
+# X+5  # X+12 # min rate               # -     # Minimum (non zero) rate sample
+# X+6  # X+13 # max rate               # -     # Maximum rate sample
+##############################################################################
+# X+14 - X+23 # Rate samples           # bytes # Bytes in the first 10 rate sampling slots C2S
+# X+24 - X+33 # Rate samples           # bytes # Bytes in the first 10 rate sampling slots S2C
+# X+34        # PSH-Messages           # -     # Number of PSH-separated 'messages' in the S2C flow
+# X+35 - X+44 # PSH-Messages size      # bytes # Bytes in the first 10 PSH-separated 'messages in the S2C flow
+############################################################################
+
+Columns X+(14/33) refer to the estimation of the initial flow bitrate
+obtained by counting the amount of bytes transfered in both directions in
+the first 10 measurements intervals (10 seconds) (part of the information
+summarized in previous columns X/X+13). Columns X+(35/44) estimate
+the structure of the S2C streaming flow, counting the blocks of data (as
+PSH-separated messages) and the dimension of the first 10 measured blocks.
+
+*********
+* Notes *
+*********
+
+For advanced users, the current log composition is also encoded as a 'magic number'
+in the first characters of the header line, that starts with "#nn#", 'nn' being
+a bitmask indicating which set were active at the time of the logging. Interested
+users should refer to tstat.h for the bitmask values.
+
+[*] The YouTube video format is the 'fmt/itag' value indicated in 
+http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs 
+Common values are 34 (360p FLV), 35 (480p FLV), and 22 (720p MP4).
+[+] Duration and size are not reported for MP4 videos.
+[=] Redirection type and redirection count are based on the redirection information in the videodownload URL:
+    Redir_mode Redir_count  Comment
+      	 0 	    0 	    No redirection indication
+      	 1 	    X 	    URL parameter redirect_counter=X, no "st=" parameter
+      	 2 	    X+1     URL parameter redirect_counter=X, parameter "st=tcts"
+      	 3 	    X+1     URL parameter redirect_counter=X, parameter "st=nx"
+      	 4 	    1       No "redirect_counter=" parameter, parameter "st=lc"
+      	 5 	    1       No "redirect_counter=" parameter, parameter "st=nx"
+      	 6 	    X+1     Any other combination
+    redirect_counter is set when the video is redirected (via "Location") from 
+       v<X>.lscache<Y>.c.youtube.com address  to the corresponding tc.v<X>.lscache<Y>.c.youtube.com
+       or to the corresponding v<X>.nonxt<Y>.c.youtube.com, 
+       or when any request is redirected to v<N>.cache<M>.c.youtube.com
+    st=tcts is set with redirect_counter when the (already redirected) request is redirected to
+       a location-identified cache r<N>.<city><X>[gst]<Y>.c.youtube.com
+    st=lc is set (with no redirect_counter parameter) when the lscache request is redirected to
+       a location-identified cache r<N>.<city><X>[gst]<Y>.c.youtube.com
+    st=nx is set (with or without redirect_counter parameter) when the nonxt request is redirected to
+       a location-identified cache r<N>.<city><X>[gst]<Y>.c.youtube.com. nonxt<N> addresses
+       are used for unlisted and private videos.
+[&] Classification for the YouTube streaming technique
+	0	No streaming. Progressive or adaptive download (DASH)
+	1	HLS streaming of recorded content
+	2	HLS streaming of live content
+	3	Advertisement
+	4	HLS streaming of live content (different from 2) 
+	5	Live FLV streaming
+
+VIDEO format - Core Video set, Video Content-Type/Payload (1)
+###################################################################################################################
+# Value # VIDEO FORMAT    # Description                       							  #
+###################################################################################################################
+#     0 # NOT_DEFINED     # Unclassified or not video                                                             #
+#     1 # FLV             # Adobe Flash Video container 							  #
+#     2 # MP4             # MPEG-4 video, including F4V format and fragmented MP4 [-]				  #
+#     3 # AVI             # AVI video format and DivX media format						  #
+#     4 # WMV             # Microsoft Media Video File (WMV) and ASF content					  #
+#     5 # MPEG            # MPEG-1, MPEG-2 and VOB video [~]							  #
+#     6 # WEBM            # Video format based on VP8 codec 							  #
+#     7 # 3GPP            # 3rd Generation Partnership Project (3GPP). The releases 5 and 6 are classified as MP4 #
+#     8 # OGG             # Ogg Vorbis Codec compressed Multimedia file						  #
+#     9 # QUICKTIME       # Video exported with QuickTime Apple Inc software [#]                                  #
+#    10 # ASF             # ASF control packets (ASF video are generally classified as WMV)                       #
+#    12 # HLS             # HTTP Live Streaming                                                                   #
+#    13 # NFF             # NDS File Format (Cisco Videoscape), used by Sky+ boxes for VOD as 'video/nff'         #
+#    11 # UNKNOWN         # Other videos formats or Content-Type values like 'video/*'                            #
+###################################################################################################################
+
+
+[*] The YouTube video format is the 'fmt/itag' value indicated in 
+http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs 
+Common values are 34 (360p FLV), 35 (480p FLV), and 22 (720p MP4).
+[+] Values reported only for FLV, MP4. 
+   [+*] Value not reported for AVI format
+
+[-] F4V and FLV differences are summarized in
+http://knol.google.com/k/what-is-the-difference-flash-video-flv-f4v-and-h-264#
+
+[~] The signatures for MPEG encoded videos are based on the rules described in:
+http://www.garykessler.net/library/file_sigs.html
+
+[#] The classification relays only on the Content-Type value announce by the server.
+    Currently the payload matching is not supported for this video format.

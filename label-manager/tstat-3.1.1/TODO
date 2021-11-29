@@ -1,0 +1,9 @@
+(see also TODO.histo)
+
+- extend the parsing system of level 2 packet headers 
+  to identify IP header in a more flexible way
+
+- identify a proper threshold for the number of packets in
+  the skype early classification
+
+- create uniform system for error messages

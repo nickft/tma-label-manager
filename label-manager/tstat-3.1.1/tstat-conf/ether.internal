@@ -1,0 +1,6 @@
+# Sample configuration file for Tstat -M option.
+# This file contains the valid MAC addresses for the internal
+# traffic (the MAC addresses of the router NICs over which internal traffic 
+# is received)
+11:22:33:44:55:66 
+66:55:44:33:22:11

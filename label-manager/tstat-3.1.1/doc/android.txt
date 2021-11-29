@@ -1,0 +1,46 @@
+Instructions
+============
+
+Tstat can be compiled to be run with no (or little) modifications
+over an Android device (rooted)
+
+You are supposed to know how to develop and compile an Android application,
+so we are leaving out all the grisly Android details and we will just give 
+a brief overview of the cross-compilation procedure.
+
+- Install the SDK and the NDK from the Android site
+
+- Follow the instructions in $NDK/docs/STANDALONE-TOOLCHAIN.html to setup 
+  your own toolchain. This should result in the suitable compilation tool
+  being in your $PATH
+
+- Compile an Android ARM compatible version of libpcap
+
+- Move to the Tstat source directory and follow the normal compilation 
+  procedure
+  
+  $ ./autogen.sh
+  $ [...ENVIRONMENT options...] ./configure --enable-android [...other configure options...]
+  $ make
+  
+  The "ENVIRONMENT options" are the options to be defined so that the 
+  configure script can define the correct compilation parameters.
+  For example:
+  
+  CC=arm-linux-androideabi-gcc \
+  CXX=arm-linux-androideabi-g++ \
+  LDFLAGS=-L/path/to/libpcap \
+  CPPFLAGS=-I/path/to/include/libpcap
+  
+  The "other configure options" will be the ones normally needed for Android
+  cross-compilation, like --host and/or --build.
+
+- After the compilation, tstat should be ready to be run over the (rooted) 
+  Android device, like a normal command line application, with the same 
+  command line options and configuration files used on any other device.
+  As an expert Android developer, you should know how to install the
+  application on the device
+  
+NOTICE: all the procedure is rather experimental and we cannot provide 
+support for any Android compilation and deployment issue. 
+Any suggestion on improvements to the installation procedure is welcomed.
