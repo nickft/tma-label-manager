@@ -8,14 +8,15 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    network_mode: host
   label-manager:
     build: ../label-manager
     command: python manage.py runserver 0.0.0.0:8000
-    # volumes:
-      # - ../data/backup:/home/ias/backup
-    ports:
-      - 8000:8000
+    volumes:
+      - ../scripts/backup:/root/backup
     depends_on:
       - tma-postgres
+    network_mode: host
 volumes:
   postgres_vol:
+  

@@ -8,11 +8,13 @@ from django.http import JsonResponse
 
 from .models import *
 from .forms import *
+from .network import *
 
 import os
 import random
 import requests
 import json
+import threading
 
 def index(request):
 
@@ -93,7 +95,9 @@ def startVideo(request, video_id):
 
     # TODO Enforce bw limitation
 
-    # TODO Start capturing traffic using a thread function
+    # Start capturing traffic using a thread function
+    thread = threading.Thread(target=captureTraffic, args=(settings.CAPTURE_INTERFACE, session))
+    thread.start()
 
     responseData={}
     if(session.status == -1):

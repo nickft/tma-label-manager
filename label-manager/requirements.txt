@@ -3,3 +3,4 @@ psycopg2-binary>=2.8
 django-environ
 requests
 django-crispy-forms
+pyshark
