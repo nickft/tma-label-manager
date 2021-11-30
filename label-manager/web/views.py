@@ -121,7 +121,7 @@ def finishVideo(request, video_id):
         session = Session.objects.get(id=video_id)
 
         # TODO Retrieve network data based on tstat result
-        input_network_data = getTstatStatistics(session)
+        input_network_data = getTstatStatistics(settings.CAPTURE_INTERFACE, session)
 
         # Retrieve application data from 
         input_application_data = request.POST.get('application_data')

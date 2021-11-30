@@ -1,6 +1,6 @@
 import pyshark
 
-def captureTraffic(interface='wlp3s0', session):
+def captureTraffic(interface, session):
 
     # Flush existing bandwidth limitation
     flushNetworkLimitation(interface)
@@ -12,11 +12,11 @@ def captureTraffic(interface='wlp3s0', session):
     capture.sniff(timeout=session.training.session_duration)
     return
 
-def flushNetworkLimitation(interface='wlp3s0'):
+def flushNetworkLimitation(interface):
     # TODO
     return
 
-def enforceNetworkLimitation(interface='wlp3s0', session):
+def enforceNetworkLimitation(interface, session):
     # TODO
     return
 
