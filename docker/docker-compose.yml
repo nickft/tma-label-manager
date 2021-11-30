@@ -14,6 +14,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ../scripts/backup:/root/backup
+      - ../scripts/bw_limit:/root/bw_limit
     depends_on:
       - tma-postgres
     network_mode: host
