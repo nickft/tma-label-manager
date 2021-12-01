@@ -36,6 +36,14 @@ This will launch two services:
 - Django application
 - Postgresql Database
 
+**(Update)** For the bandwidth limitation to be performed you need to launch a script as root. Basically, the script (executed on host) receives commands from the container and enforces the bandwidth rules to the host's interfaces.
+
+Open a new tab and go to scripts/bw_limit directory. Execute the script:
+
+```
+sudo bash bw_handler.sh
+```
+
 ## Debugging 
 
 To view the state of both services execute:
