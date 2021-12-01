@@ -18,6 +18,10 @@ services:
     depends_on:
       - tma-postgres
     network_mode: host
+  quality-predictor:
+    build: ../quality-predictor
+    command: python manage.py runserver 0.0.0.0:8001
+    network_mode: host
 volumes:
   postgres_vol:
   
