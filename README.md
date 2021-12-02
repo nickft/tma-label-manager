@@ -15,7 +15,7 @@ If you visit the label-manager/config directory you will notice a .env.example f
 
 Finally, there is the **Database Url** parameter. This contains the information on how django application connects to the database. You need to replace it with the following link:
 
-DATABASE_URL=psql://postgres:postgres@tma-postgres:5432/postgres
+DATABASE_URL=psql://postgres:postgres@localhost:5432/postgres
 
 Now, go to the docker/ directory. To "compile" the code you need to run 
 
@@ -37,6 +37,10 @@ This will launch two services:
 - Postgresql Database
 
 **(Update)** For the bandwidth limitation to be performed you need to launch a script as root. Basically, the script (executed on host) receives commands from the container and enforces the bandwidth rules to the host's interfaces.
+
+In the config/.env file you need to add another field that contains the interface of your pc that is connected to the internet (perform 'ip a' to find out more).
+
+INTERFACE=<name of interface>
 
 Open a new tab and go to scripts/bw_limit directory. Execute the script:
 
