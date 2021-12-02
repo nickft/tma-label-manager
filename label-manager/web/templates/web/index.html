@@ -29,6 +29,18 @@
                     <th>Bandwidth</th>
                     <td id="bandwidth-id"></td>
                 </tr>
+                <tr>
+                    <th># of Stalls</th>
+                    <td id="stalls"></td>
+                </tr>
+                <tr>
+                    <th># of Quality Changes</th>
+                    <td id="quality-changes"></td>
+                </tr>
+                <tr>
+                    <th># of FPS Changes</th>
+                    <td id="fps-changes"></td>
+                </tr>
             </table>
         </div>
 
@@ -56,14 +68,37 @@
 <script type="text/javascript">
     var stallCount = 0;
 
+    var qualityChanges = 0;
+    var currentQuality = null;
+
+    var fpsChanges = 0;
+    var currentFps = null;
+
+    var bw_timeline = [];
+
+
+    var twitchPlayer = null;
+
     function resetApplicationData() {
         stallCount = 0;
+        qualityChanges = 0;
+        currentQuality = null;
+        fpsChanges = 0;
+        currentFps = null;
+        bw_timeline = [];
     }
 
     function getApplicationData() {
+        var playBackStats = twitchPlayer.getPlaybackStats();
+
         var result = "{";
 
         result += '"stallCount":' + stallCount;
+        result += ',"qualityChanges":' + qualityChanges;
+        result += ',"skippedFrames":' + playBackStats.skippedFrames;
+        result += ',"fpsChanges":' + fpsChanges;
+        //result += '",bw_timeline":[' + bw_timeline.toString() + "]";
+        result += ',"twitch_backend":"' + playBackStats.backendVersion + '"';
 
         result += "}"
 
@@ -78,6 +113,20 @@
         stallCount++;
     }
 
+    function appendBw(bw_level) {
+        bw_timeline.push(bw_level);
+    }
+
+    function countQualityChanges(newQuality) {
+        qualityChanges++;
+        currentQuality = newQuality;
+    }
+
+    function countFpsChanges(newFps) {
+        fpsChanges++;
+        currentFps = newFps;
+    }
+
     function createPlayer(channel_name) {
         var options = {
             width: "100%",
@@ -85,10 +134,10 @@
             channel: channel_name,
             autoplay: true,
         };
-        var player = new Twitch.Player("1", options);
-        player.setVolume(0.5);
+        twitchPlayer = new Twitch.Player("1", options);
+        twitchPlayer.setVolume(0.5);
 
-        player.addEventListener(Twitch.Player.PLAY, countStallEvents);
+        twitchPlayer.addEventListener(Twitch.Player.PLAY, countStallEvents);
     }
 
     function requestVideo() {
@@ -142,6 +191,31 @@
         document.getElementById("bandwidth-id").innerHTML = (data.bandwidth_limitation == -1) ? "Unlimited" : data.bandwidth_limitation + " Mbps";
     }
 
+    function checkForQualityChanges() {
+
+        if (twitchPlayer) {
+            var playBackStats = twitchPlayer.getPlaybackStats();
+
+            var newQuality = playBackStats.videoResolution;
+            var newFps = playBackStats.fps;
+            var newBw = playBackStats.bufferSize;
+
+            if (newQuality !== currentQuality) {
+                countQualityChanges(newQuality);
+            }
+
+            if (newFps !== currentFps) {
+                countFpsChanges(newFps);
+            }
+
+            appendBw(newBw);
+
+            document.getElementById("stalls").innerHTML = stallCount;
+            document.getElementById("quality-changes").innerHTML = qualityChanges;
+            document.getElementById("fps-changes").innerHTML = fpsChanges;
+        }
+    }
+
     function startVideo(video_id) {
         $.ajax({
             type: "GET",
@@ -150,6 +224,8 @@
             url: "/startVideo/" + video_id,
             success: function (data) {
                 updateSessionDataDisplayed(data);
+
+                qualityChangesInterval = setInterval(checkForQualityChanges, (data.duration / 10) * 1000);
 
                 // Wait for 20 seconds
                 console.log("Wait for 20 seconds before you start capturing application data")
@@ -163,6 +239,7 @@
                             function () {
                                 //Get application data
                                 let application_data = getApplicationData();
+                                clearInterval(qualityChangesInterval);
                                 finishVideo(video_id, application_data)
                             }, data.duration * 1000)
                     }, 20 * 1000);

@@ -3,12 +3,10 @@ docker_container_name="docker_label-manager"
 
 enforce_bandwidth_limitation () {
   echo "Enforcing $1 $2 by executing wondershaper -a $1 -d $2"
-  ../../wondershaper/wondershaper -a $1 -d $2
 }
 
 flush_bandwidth_limitation () {
   echo "Flushing $1 by executing wondershaper -ca $1"
-  ../../wondershaper/wondershaper -ca $1
 }
 
 rm bw_limit

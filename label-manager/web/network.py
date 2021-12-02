@@ -29,8 +29,8 @@ def enforceNetworkLimitation(interface, session):
     if(session.bw_limitation == -1):
         return
 
-    #Calculate correct value for Kbps
-    bandwidth = session.bw_limitation * 1024
+    #TODO Calculate correct value for Kbps
+    bandwidth = session.bw_limitation
 
     os.system("echo enforce {} {}>{}".format(interface, bandwidth, settings.BW_LIMITATION_PIPE))
 
