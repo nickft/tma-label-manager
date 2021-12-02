@@ -48,6 +48,12 @@ Open a new tab and go to scripts/bw_limit directory. Execute the script:
 sudo bash bw_handler.sh
 ```
 
+Make sure that you have already installed wondershaper inside the project. Since we are simply referencing another github project we have the respective folder, but we don't have the content. To get the content you simply need to run the following command in the root project directory:
+
+```
+git clone https://github.com/magnific0/wondershaper.git
+```
+
 ## Debugging 
 
 To view the state of both services execute:
