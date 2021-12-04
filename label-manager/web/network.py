@@ -55,7 +55,7 @@ def tstatExecute(input_file):
     # capture directory:
     dir_docker = "/code/captured/"
     os.chdir(dir_docker)
-    bash_command = "sudo tstat {}".format(input_file)
+    bash_command = "tstat {}".format(input_file)
     os.system(bash_command)
 
 def fromTstatToJson(input_file):
