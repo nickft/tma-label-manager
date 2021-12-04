@@ -58,7 +58,7 @@ def tstatExecute(input_file):
     bash_command = "sudo tstat {}".format(input_file)
     os.system(bash_command)
 
-def fromTstatToJson(statistics_as_string):
+def fromTstatToJson(input_file):
      statistics_folder=str(input_file)+".out"
     os.chdir(statistics_folder)
 
