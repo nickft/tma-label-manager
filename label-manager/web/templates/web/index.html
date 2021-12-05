@@ -75,6 +75,9 @@
     var currentFps = null;
 
     var bw_timeline = [];
+    var time_bw_limitation = 25;
+
+    var time_start_capturing = 20;
 
 
     var twitchPlayer = null;
@@ -227,26 +230,50 @@
 
                 qualityChangesInterval = setInterval(checkForQualityChanges, (data.duration / 10) * 1000);
 
+                //enforcing bandwith limitation after 25 seconds
+                enforceBandwithInMiddleSession(video_id);
                 // Wait for 20 seconds
-                console.log("Wait for 20 seconds before you start capturing application data")
+                console.log("Wait for " + time_start_capturing + " seconds before you start capturing application data");
                 setTimeout(
                     function () {
-                        console.log("Woke up after 20 seconds")
+                        console.log("Woke up after 20 seconds");
 
-                        console.log("Resetting application data")
-                        resetApplicationData()
+                        console.log("Resetting application data");
+                        resetApplicationData();
                         setTimeout(
                             function () {
                                 //Get application data
                                 let application_data = getApplicationData();
                                 clearInterval(qualityChangesInterval);
-                                finishVideo(video_id, application_data)
+                                finishVideo(video_id, application_data);
                             }, data.duration * 1000)
-                    }, 20 * 1000);
+                    }, time_start_capturing * 1000);
             }
         });
     }
 
+    function enforceBandwithInMiddleSession(video_id){
+        //bandwith limitation in the middle of the session
+        
+        console.log("Waiting " + time_bw_limitation + " seconds until bandwith is enforced");  
+        setTimeout( function() {
+            console.log("Enforcing bandwith limitation");
+            $.ajax({
+                type: "GET",
+                data: ({}),
+                dataType: 'json',
+                url: "/enforceBandwith/" + video_id,
+                success: function(data){  
+                    console.log("Bandwith enforcement state: Success");
+                },
+                errror: function() {
+                    console.log("Bandwith enforcement state: Error");
+                }
+            })
+        }, time_bw_limitation * 1000)
+        
+    }
+    
     $(document).ready(function () {
         requestVideo();
     });

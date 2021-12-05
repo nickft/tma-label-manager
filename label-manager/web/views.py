@@ -169,6 +169,15 @@ def requestVideo(request):
         
     return JsonResponse(responseData)
 
+def enforceBandwith(request, video_id):
+
+    session = Session.objects.get(id=video_id)
+    
+    enforceNetworkLimitation(settings.CAPTURE_INTERFACE, session)
+    responseData={}
+
+    return JsonResponse(responseData)
+
 
 def createTraining(request):
     

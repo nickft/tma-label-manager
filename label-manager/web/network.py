@@ -8,7 +8,7 @@ def captureTraffic(interface, session):
     flushNetworkLimitation(interface)
 
     # Enforce new bandwidth limitation
-    enforceNetworkLimitation(interface, session)
+    # enforceNetworkLimitation(interface, session)
 
     capture = pyshark.LiveCapture(interface=interface, output_file=getPcapFileFromSession(session))
     capture.sniff(timeout=session.training.session_duration)
