@@ -42,7 +42,13 @@
                     <td id="fps-changes"></td>
                 </tr>
             </table>
+
+            <form action="{% url 'stop-training' training_id=training.id %}" method='GET'>
+                <button type='submit' class="btn btn-danger">Force-Stop Training</button>
+            </form>
         </div>
+
+
 
         <div id="1" class="twitch-player" />
         {% else %}

@@ -20,7 +20,7 @@ class Session(models.Model):
     started_at = models.DateTimeField(blank=True, null=True)
     finished_at = models.DateTimeField(blank=True, null=True)
     url = models.TextField()
-    status = models.IntegerField() # -1 For not captured yet. 0 For under capturing. 1 For captured video
+    status = models.IntegerField() # -1 For not captured yet. 0 For under capturing. 1 For captured video. 2 for invalid
     bw_limitation = models.FloatField()
     application_data = models.TextField(blank=True, null=True)
     network_data = models.TextField(blank=True, null=True)

@@ -5,6 +5,8 @@ import statistics
 import json  
 import subprocess
 import re
+import time
+import signal
 
 def captureTraffic(interface, session):
 
@@ -14,18 +16,24 @@ def captureTraffic(interface, session):
     # Enforce new bandwidth limitation
     enforceNetworkLimitation(interface, session)
 
-    capture = pyshark.LiveCapture(interface=interface, output_file=getPcapFileFromSession(session))
-    capture.sniff(timeout=session.training.session_duration)
+    time.sleep(15)
+    
+    devnull = open('/dev/null', 'w')
+    p = subprocess.Popen(["tstat","-li",interface,"-s", getPcapFileFromSession(session)], stdout=devnull, shell=False)
+    
+    time.sleep(session.training.session_duration)
+
+    p.send_signal(signal.SIGINT)
 
     # Flush applied bandwidth rules
     flushNetworkLimitation(interface)
 
+    print("Finished network capturing")
+
     return
 
 def flushNetworkLimitation(interface):
-
     os.system("echo flush {}>{}".format(interface, settings.BW_LIMITATION_PIPE))
-
     return
 
 def enforceNetworkLimitation(interface, session):
@@ -33,24 +41,23 @@ def enforceNetworkLimitation(interface, session):
     if(session.bw_limitation == -1):
         return
 
-    #TODO Calculate correct value for Kbps
-    bandwidth = session.bw_limitation
+    # Calculate correct value for Kbps
+    bandwidth = session.bw_limitation * 1024
 
     os.system("echo enforce {} {}>{}".format(interface, bandwidth, settings.BW_LIMITATION_PIPE))
 
     return
 
-def getTstatStatistics(interface, session):
+def getTstatStatistics(session):
 
     input_file = getPcapFileFromSession(session)
 
-    # Get statistics executing Tstat tool
-    tstatExecute(input_file)
+    # Get statistics in json format
+    statistics = fromTstatToJson(input_file)
 
-    # Express statistics in json format
-    statistics = fromTstatToJson (input_file)
     return statistics
 
+# This function is never called leaving it here for reference
 def tstatExecute(input_file):
     # capture directory:
     dir_docker = "/code/captured/"
@@ -59,7 +66,7 @@ def tstatExecute(input_file):
     os.system(bash_command)
 
 def fromTstatToJson(input_file):
-     statistics_folder=str(input_file)+".out"
+    statistics_folder=str(input_file)
     os.chdir(statistics_folder)
 
     # Access to the latest modified folder
@@ -69,6 +76,10 @@ def fromTstatToJson(input_file):
 
     # Open the tcp complete doc
     logs = open("log_tcp_complete").readlines()
+
+    if(len(logs) == 1):
+        print("ERROR: No TCP flows were analyzed. Discarding session")
+        return None
 
     # Basic TCP Set
     packets = []                # total number of packets observed form the client/server
@@ -177,11 +188,13 @@ def fromTstatToJson(input_file):
     json_syntax = ["packets", "data_pkts", "data_bytes", "rexmit_pkts", "rexmit_bytes", "rtt_avg", "rtt_min", "rtt_max", "stdev_rtt", "rtt_count", "reordering", "ttl_min", "ttl_max", "max_seg_size" , "min_seg_size", "win_max", "win_min", "rtx_RTO", "rtx_FR", "reordering", "net_dup", "flow_control", "unnece_rtx_RTO", "unnece_rtx_FR"]
     jsonList = ({json_syntax[0] : packets, json_syntax[1] : data_pkts, json_syntax[2] : data_bytes, json_syntax[3] : rexmit_pkts, json_syntax[4] : rexmit_bytes, json_syntax[5] : rtt_avg, json_syntax[6] : rtt_min, json_syntax[7] : rtt_max, json_syntax[8] : stdev_rtt, json_syntax[9] : rtt_count, json_syntax[10] : ttl_min, json_syntax[11] : ttl_max, json_syntax[12] : max_seg_size, json_syntax[13] : min_seg_size, json_syntax[14] : win_max, json_syntax[15] : win_min, json_syntax[16] : rtx_RTO, json_syntax[17] : rtx_FR, json_syntax[18] : reordering, json_syntax[19] : net_dup, json_syntax[20] : flow_control, json_syntax[21] : unnece_rtx_RTO, json_syntax[22] : unnece_rtx_FR})
 
+
+    # For debug purpose
     output_file = str(input_file)+".json"
     with open (output_file, "w") as outfile:
         outfile.write(json.dumps(jsonList))
 
-    return(output_file)
+    return(json.dumps(jsonList))
 
 def getPcapFileFromSession(session):
-    return "/code/captured/session_{}_training_{}.pcap".format(session.id, session.training.id)
+    return "/code/captured/training_{}_session_{}".format(session.training.id, session.id)

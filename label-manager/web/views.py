@@ -42,18 +42,34 @@ def index(request):
 
     return render(request, 'web/index.html', context)
 
+def stopTraining(request, training_id):
+    training = Training.objects.get(id=training_id)
+
+    unfinished_session_list = Session.objects.filter(training=training).exclude(status=1)
+
+    training.number_of_videos = training.number_of_videos - len(unfinished_session_list)
+
+    unfinished_session_list.delete()
+
+    training.has_finished = True
+    training.finished_at = timezone.now()
+
+    training.save()
+
+    return HttpResponseRedirect("/")
+
 def downloadDataset(request, training_id):
     training = Training.objects.get(id=training_id)
 
     file_name = "dataset-"+str(training.id)+".csv"
-    file_url = "datasets/"+file_name
+    file_url = "/code/datasets/"+file_name
 
-    session_list = Session.objects.filter(training=training)
+    # Collect info only from the successfully captured datasets
+    session_list = Session.objects.filter(training=training, status=1)
 
     with open(file_url, 'w+') as fw:
 
         network_data_dict = json.loads(session_list[0].network_data)
-        print(session_list[0].application_data)
         application_data_dict = json.loads(session_list[0].application_data)
 
         columnList=["id", "bw", "duration"]
@@ -64,6 +80,9 @@ def downloadDataset(request, training_id):
         fw.write(','.join([str(i) for i in columnList]) + "\n")
 
         for session in session_list:
+
+            network_data_dict = json.loads(session.network_data)
+            application_data_dict = json.loads(session.application_data)
             
             columnList=[session.id, session.bw_limitation, training.session_duration]
             columnList.extend(network_data_dict.values())
@@ -120,18 +139,22 @@ def finishVideo(request, video_id):
     if request.method == 'POST':
         session = Session.objects.get(id=video_id)
 
-        # TODO Retrieve network data based on tstat result
-        input_network_data = getTstatStatistics(settings.CAPTURE_INTERFACE, session)
+        # Retrieve network data based on tstat result
+        input_network_data = getTstatStatistics(session)
 
-        # Retrieve application data from 
-        input_application_data = request.POST.get('application_data')
+        if(input_network_data is None):
+            session.status = 2
+            session.finished_at = timezone.now()
+        else:
+            # Retrieve application data from 
+            input_application_data = request.POST.get('application_data')
 
-        # Update the status of the session to "Finished Capturing"
-        session.status = 1
-        session.finished_at = timezone.now()
-        session.network_data = input_network_data
-        session.application_data = input_application_data
-        session.save()
+            # Update the status of the session to "Finished Capturing"
+            session.status = 1
+            session.finished_at = timezone.now()
+            session.network_data = input_network_data
+            session.application_data = input_application_data
+            session.save()
 
         #Send an empty response
         responseData={}
