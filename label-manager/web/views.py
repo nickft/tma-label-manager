@@ -120,7 +120,8 @@ def startVideo(request, video_id):
         responseData['video_url'] = session.url
         responseData['duration'] = session.training.session_duration
         responseData['bandwidth_limitation'] = session.bw_limitation
-        responseData['order'] = Session.objects.filter(training = session.training, status=1).count()+1
+        responseData['order'] = Session.objects.filter(training = session.training).exclude(status=-1).count()+1
+        responseData['discarded'] = Session.objects.filter(training = session.training, status=2).count()
         responseData['total_videos'] = session.training.number_of_videos
     elif(session.status == 0):
         responseData['errorMessage'] = "The video is under capturing. What are you doing??"
@@ -145,6 +146,7 @@ def finishVideo(request, video_id):
         if(input_network_data is None):
             session.status = 2
             session.finished_at = timezone.now()
+            session.save()
         else:
             # Retrieve application data from 
             input_application_data = request.POST.get('application_data')
@@ -181,11 +183,22 @@ def requestVideo(request):
 
     #If there is extra video to capture,
     if(selectedSession):
+
+        channel_name = getAChannelName()
+        print("Found a new channel to connect {}".format(channel_name))
+        selectedSession.url = channel_name
+        selectedSession.save()
+
         responseData['finished'] = False
         responseData['video_id'] = selectedSession.id
-        responseData['video_url'] = selectedSession.url
+        responseData['video_url'] = channel_name
     else:
         responseData['finished'] = True
+        number_of_collected_sessions = Session.objects.filter(training=training, status=1).count()
+        
+        if(number_of_collected_sessions != training.number_of_videos):
+            print("{} sessions were discarded".format(training.number_of_videos - number_of_collected_sessions))
+        
         training.finished_at = timezone.now()
         training.has_finished = True
         training.save()
@@ -225,12 +238,10 @@ def createTraining(request):
 
         for i in range(0, training.number_of_videos):
 
-            channel_name = random.choice(channel_name_list)
-
             session = Session()
             session.name = "Session {}".format(i)
             session.training = training
-            session.url = channel_name
+            session.url = "Default. It will be initialized when video starts"
             session.status = -1
             if training.bw_limitations: 
                 bandwidth_limitation_list = training.bw_limitations.split(",")
@@ -286,5 +297,26 @@ def getChannelNameList(number_of_streams = 20):
         channel_name_list.append(channel['user_login'])
 
     return channel_name_list
+
+def getAChannelName():
+
+    access_token = requestTwitchToken()
+
+    session = requests.Session() 
+    session.headers.update({'Authorization': 'Bearer '+access_token, 'Client-Id': settings.TWITCH_CLIENT_ID})
+    response = session.get("https://api.twitch.tv/helix/streams?first="+str(20))
+
+    response.raise_for_status()
+
+    channel_name_list = []
+
+    for channel in response.json()['data']:
+        # Ignore channels that require user intervention to accept the "is mature" pop-up message
+        if channel['is_mature']:
+            continue
+            
+        channel_name_list.append(channel['user_login'])
+
+    return random.choice(channel_name_list)
 
 

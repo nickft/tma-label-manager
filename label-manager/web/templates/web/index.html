@@ -188,7 +188,7 @@
     }
 
     function updateSessionDataDisplayed(data) {
-        document.getElementById("progress-id").innerHTML = "Session " + data.order + " out of " + data.total_videos;
+        document.getElementById("progress-id").innerHTML = "Session " + data.order + " out of " + data.total_videos + ". Discarded: " + data.discarded;
 
         document.getElementById("progress-bar-id").setAttribute("aria-valuenow", data.order);
         document.getElementById("progress-bar-id").setAttribute("aria-valuemax", data.total_videos);
@@ -258,28 +258,28 @@
         });
     }
 
-    function enforceBandwithInMiddleSession(video_id){
+    function enforceBandwithInMiddleSession(video_id) {
         //bandwith limitation in the middle of the session
-        
-        console.log("Waiting " + time_bw_limitation + " seconds until bandwith is enforced");  
-        setTimeout( function() {
+
+        console.log("Waiting " + time_bw_limitation + " seconds until bandwith is enforced");
+        setTimeout(function () {
             console.log("Enforcing bandwith limitation");
             $.ajax({
                 type: "GET",
                 data: ({}),
                 dataType: 'json',
                 url: "/enforceBandwith/" + video_id,
-                success: function(data){  
+                success: function (data) {
                     console.log("Bandwith enforcement state: Success");
                 },
-                errror: function() {
+                errror: function () {
                     console.log("Bandwith enforcement state: Error");
                 }
             })
         }, time_bw_limitation * 1000)
-        
+
     }
-    
+
     $(document).ready(function () {
         requestVideo();
     });
