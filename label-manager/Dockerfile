@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
     apt-get install -y tshark && \
     apt-get install -y libtool && \
+    apt-get install -y tcpdump && \
     # binutils are necessary to use strip utility
     apt-get install -y --no-install-recommends binutils && \
     # this is required due to incompatibilities on Centos 7 hosts see issue #4 for details

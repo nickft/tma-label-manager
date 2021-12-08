@@ -15,14 +15,16 @@ def captureTraffic(interface, session):
 
     # Enforce new bandwidth limitation
     # enforceNetworkLimitation(interface, session)
-
-    time.sleep(15)
-    
+   
     devnull = open('/dev/null', 'w')
-    p = subprocess.Popen(["tstat","-li",interface,"-s", getPcapFileFromSession(session)], stdout=devnull, shell=False)
+    #p = subprocess.Popen(["tstat","-li",interface,"-s", getPcapFileFromSession(session)], stdout=devnull, shell=False)
     
+    p = subprocess.Popen(["tcpdump","-s 0", "-i", interface,"-w", getPcapFileFromSession(session)], stdout=devnull, shell=False)
+
+    print("Start Network Capturing. It will last for {} seconds".format(session.training.session_duration))
     time.sleep(session.training.session_duration)
 
+    print("Killing Network Capturing")
     p.send_signal(signal.SIGINT)
 
     # Flush applied bandwidth rules
@@ -52,22 +54,28 @@ def getTstatStatistics(session):
 
     input_file = getPcapFileFromSession(session)
 
+    statistics_dir = getTstatOutputFromSession(session)
+
+    tstatExecute(input_file, statistics_dir)
+
     # Get statistics in json format
-    statistics = fromTstatToJson(input_file)
+    statistics = fromTstatToJson(statistics_dir)
 
     return statistics
 
 # This function is never called leaving it here for reference
-def tstatExecute(input_file):
+def tstatExecute(input_file, statistics_dir):
+
     # capture directory:
-    dir_docker = "/code/captured/"
-    os.chdir(dir_docker)
-    bash_command = "tstat {}".format(input_file)
+    os.chdir(settings.CAPTURED_DIR)
+    bash_command = "tstat {pcap} -s {out}".format(pcap=input_file, out=statistics_dir)
+
     os.system(bash_command)
 
-def fromTstatToJson(input_file):
-    statistics_folder=str(input_file)
-    os.chdir(statistics_folder)
+    os.remove(input_file)
+
+def fromTstatToJson(statistics_dir):
+    os.chdir(statistics_dir)
 
     # Access to the latest modified folder
     all_subdirs = [d for d in os.listdir('.') if os.path.isdir(d)]
@@ -190,11 +198,14 @@ def fromTstatToJson(input_file):
 
 
     # For debug purpose
-    output_file = str(input_file)+".json"
-    with open (output_file, "w") as outfile:
-        outfile.write(json.dumps(jsonList))
+    # output_file = str(input_file)+".json"
+    # with open (output_file, "w") as outfile:
+    #     outfile.write(json.dumps(jsonList))
 
     return(json.dumps(jsonList))
 
 def getPcapFileFromSession(session):
-    return "/code/captured/training_{}_session_{}".format(session.training.id, session.id)
+    return settings.CAPTURED_DIR+"/training_{}_session_{}.pcap".format(session.training.id, session.id)
+
+def getTstatOutputFromSession(session):
+    return settings.CAPTURED_DIR+"/training_{}_session_{}".format(session.training.id, session.id)

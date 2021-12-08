@@ -145,3 +145,5 @@ TWITCH_CLIENT_SECRET = env.str('TWITCH_CLIENT_SECRET')
 CAPTURE_INTERFACE = env.str('INTERFACE')
 
 BW_LIMITATION_PIPE = '/root/bw_limit/bw_limit'
+
+CAPTURED_DIR="/code/captured"
