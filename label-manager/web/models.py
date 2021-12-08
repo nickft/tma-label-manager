@@ -10,9 +10,17 @@ class Training(models.Model):
     bw_limitations = models.TextField()
     session_duration = models.FloatField()
     has_finished = models.BooleanField()
+    discarded_sessions = models.IntegerField()
     
     def __str__(self):
         return self.name
+
+    def delete(self):
+        session_list = Session.objects.filter(training=self)
+        if session_list:
+            for session in session_list:
+                session.delete()
+        super(Training, self).delete()
 
 class Session(models.Model):
     name = models.TextField()

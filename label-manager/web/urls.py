@@ -11,5 +11,6 @@ urlpatterns = [
     path('finishVideo/<video_id>', views.finishVideo, name='finish-video'),
     path('enforceBandwith/<video_id>', views.enforceBandwith, name='enforce-bandwith'),
     path('download/<training_id>', views.downloadDataset, name='download-dataset'),
-    path('stopTraining/<training_id>', views.stopTraining, name='stop-training')
+    path('stopTraining/<training_id>', views.stopTraining, name='stop-training'),
+    path('deleteTraining/<training_id>', views.deleteTraining, name='delete-training')
 ]

@@ -4,6 +4,7 @@
             <th scope="col">Dataset Name</th>
             <th scope="col">Generated at</th>
             <th scope="col"># of videos</th>
+            <th scope="col"># of discarded sessions</th>
             <th scope="col">Download link</th>
         </tr>
     </thead>
@@ -15,13 +16,19 @@
             <td>{{training.name}}</td>
             <td>{{training.finished_at}}</td>
             <td>{{training.number_of_videos}}</td>
+            <td>{{training.discarded_sessions}}</td>
             <td>
                 <form class="d-inline" action="{% url 'download-dataset' training_id=training.id %}" method="POST">
                     {% csrf_token %}
-                    <button type="submit" class="btn">
+                    <button id="button" type="submit" class="btn">
                         <img src="/static/web/img/download.png" class="download-icon icon">
                     </button>
                 </form>
+            </td>
+            <td>
+                <button onClick="handleDelete('{{ training.id }}')" class="btn">
+                    <img src="/static/web/img/delete.png" class="download-icon icon">
+                </button>
             </td>
         </tr>
 
@@ -29,9 +36,28 @@
 
         {% else %}
         <tr>
-            <td colspan="4" style="text-align: center;">No dataset generated... Yet!</td>
+            <td colspan="5" style="text-align: center;">No dataset generated... Yet!</td>
         </tr>
         {% endif %}
     </tbody>
+
+    <script>
+
+        function handleDelete(trainingId) {
+            if (confirm('Are you sure you want to delete the dataset? All information will be lost')) {
+                $.ajax({
+                    type: "GET",
+                    dataType: 'json',
+                    url: "/deleteTraining/" + trainingId,
+                    success: function (data) {
+                        location.reload(true);
+                    }
+                });
+            } else {
+                return false;
+            }
+        }
+
+    </script>
 
 </table>

@@ -42,6 +42,12 @@ def index(request):
 
     return render(request, 'web/index.html', context)
 
+def deleteTraining(request, training_id):
+    training = Training.objects.get(id=training_id)
+    training.delete()
+    
+    return JsonResponse({"status": 'ok'})
+
 def stopTraining(request, training_id):
     training = Training.objects.get(id=training_id)
 
@@ -105,7 +111,6 @@ def downloadDataset(request, training_id):
     response['Content-Disposition'] = 'attachment;filename="{0}"'.format(file_name)
     return response
 
-
 def startVideo(request, video_id):
 
     session = Session.objects.get(id=video_id)
@@ -121,7 +126,7 @@ def startVideo(request, video_id):
         responseData['duration'] = session.training.session_duration
         responseData['bandwidth_limitation'] = session.bw_limitation
         responseData['order'] = Session.objects.filter(training = session.training).exclude(status=-1).count()+1
-        responseData['discarded'] = Session.objects.filter(training = session.training, status=2).count()
+        responseData['discarded'] = session.training.discarded_sessions
         responseData['total_videos'] = session.training.number_of_videos
     elif(session.status == 0):
         responseData['errorMessage'] = "The video is under capturing. What are you doing??"
@@ -144,9 +149,12 @@ def finishVideo(request, video_id):
         input_network_data = getTstatStatistics(session)
 
         if(input_network_data is None):
-            session.status = 2
-            session.finished_at = timezone.now()
+            session.status = -1
             session.save()
+
+            training = session.training
+            training.discarded_sessions = training.discarded_sessions + 1
+            training.save()
         else:
             # Retrieve application data from 
             input_application_data = request.POST.get('application_data')
@@ -162,7 +170,6 @@ def finishVideo(request, video_id):
         responseData={}
 
     return JsonResponse(responseData)    
-
 
 def requestVideo(request):
     
@@ -214,7 +221,6 @@ def enforceBandwith(request, video_id):
 
     return JsonResponse(responseData)
 
-
 def createTraining(request):
     
     form = TrainingForm(request.POST or None)
@@ -230,6 +236,7 @@ def createTraining(request):
         training.bw_limitations = form.cleaned_data['bandwidth_limitations']
         training.session_duration = form.cleaned_data['session_duration']
         training.has_finished = False
+        training.discarded_sessions = False
 
         training.save()
 
@@ -262,7 +269,6 @@ def createTraining(request):
     }
 
     return render(request, 'web/index.html', context)
-
 
 def requestTwitchToken():
     session = requests.Session()
