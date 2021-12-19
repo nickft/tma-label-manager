@@ -11,6 +11,7 @@ from .forms import *
 from .network import *
 
 import os
+import shutil
 import random
 import requests
 import json
@@ -46,6 +47,12 @@ def deleteTraining(request, training_id):
     training = Training.objects.get(id=training_id)
     training.delete()
     
+
+    #Delete files as well
+    for d in os.listdir(settings.CAPTURED_DIR):
+        if("training_{}".format(training_id) in d):
+            shutil.rmtree(settings.CAPTURED_DIR+"/"+d)
+
     return JsonResponse({"status": 'ok'})
 
 def stopTraining(request, training_id):
