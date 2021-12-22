@@ -1,6 +1,20 @@
 # Traffic Monitoring Analysis - QoE Classification based on network traffic
 
-## Installation
+## Table of Contents
+
+1. [Machine Learning](ml)
+2. [Requirements](requirements)
+3. [How to Deploy](deployment)
+4. [How it works](brief)
+
+
+## Maching Learning <a name="ml"></a>
+
+Information about the Classifiers can be found in the following links:
+
+*Links to Colab should be included here* ...
+
+## Installation <a name="requirements"></a>
 
 In order to develop/test the application you simply need to download:
 
@@ -9,7 +23,7 @@ In order to develop/test the application you simply need to download:
 
 Follow the instructions for your operation system. Theoretically, it is a straitforward operation.
 
-## Deploying
+## Deploying <a name="deployment"></a>
 
 If you visit the label-manager/config directory you will notice a .env.example file. Create a copy of this file and name it ".env". This file contains the **Client ID**, **Client Token** for twitch developer api. This will allow us to query the Twitch server in order to get the current streaming channels. Alexis has created a twitch account called "tma-project" and will provide you the credentials in order to fill in these two parameters in the .env file. 
 
@@ -74,7 +88,7 @@ This opens a shell to the service's container where you get to see all the files
 psql -h localhost -U postgres
 ```
 
-## Db Model
+### Db Model
 
 For the scope of the dataset creation two models have been created (in models.py):
 
@@ -112,7 +126,7 @@ SELECT * FROM web_training;
 SELECT * FROM web_session;
 ```
 
-## In Brief
+## In Brief <a name="brief"></a>
 
 Once the application launches and you connect to "localhost:8000" you will see a simple form where you can insert the number of videos (e.g. 100), the duration of each session playback in seconds (e.g. 60) and the bandwidth limitation in Mbps as a comma separated string (e.g. "0.25, 1, 2").
 
