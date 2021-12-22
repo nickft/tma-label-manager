@@ -2,10 +2,10 @@
 
 ## Table of Contents
 
-1. [Machine Learning](ml)
-2. [Requirements](requirements)
-3. [How to Deploy](deployment)
-4. [How it works](brief)
+1. [Machine Learning](#ml)
+2. [Requirements](#requirements)
+3. [How to Deploy](#deployment)
+4. [How it works](#brief)
 
 
 ## Maching Learning <a name="ml"></a>
