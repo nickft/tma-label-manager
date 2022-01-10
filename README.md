@@ -12,7 +12,7 @@
 
 Information about the Classifiers can be found in the following links:
 
-*Links to Colab should be included here* ...
+[Machine Learning Google Colab](TMA_MLEARN.ipynb)
 
 ## Installation <a name="requirements"></a>
 
@@ -25,7 +25,7 @@ Follow the instructions for your operation system. Theoretically, it is a strait
 
 ## Deploying <a name="deployment"></a>
 
-If you visit the label-manager/config directory you will notice a .env.example file. Create a copy of this file and name it ".env". This file contains the **Client ID**, **Client Token** for twitch developer api. This will allow us to query the Twitch server in order to get the current streaming channels. Alexis has created a twitch account called "tma-project" and will provide you the credentials in order to fill in these two parameters in the .env file. 
+If you visit the label-manager/config directory you will notice a .env.example file. Create a copy of this file and name it ".env". This file contains the **Client ID**, **Client Token** for twitch developer api. This will allow us to query the Twitch server in order to get the current streaming channels. Before running the application it is important that you creat a twitch account and register a new application. For instructions on how to register an application on Twitch Developpers Console visit [here](https://dev.twitch.tv/docs/api/). Once you have registered the application copy the Client ID and Client Token values and put it in the .env file.
 
 Finally, there is the **Database Url** parameter. This contains the information on how django application connects to the database. You need to replace it with the following link:
 
@@ -128,7 +128,7 @@ SELECT * FROM web_session;
 
 ## In Brief <a name="brief"></a>
 
-Once the application launches and you connect to "localhost:8000" you will see a simple form where you can insert the number of videos (e.g. 100), the duration of each session playback in seconds (e.g. 60) and the bandwidth limitation in Mbps as a comma separated string (e.g. "0.25, 1, 2").
+Once the application launches and you connect to "localhost:8000" you will see a form where you can insert the number of videos (e.g. 100), the duration of each session playback in seconds (e.g. 60) and the bandwidth limitation in Mbps as a comma separated string (e.g. "0.25, 1, 2").
 
 Once you click on Submit button then the following takes place on the backend (this is also explained in the workflow diagram):
 
@@ -144,7 +144,7 @@ Once you click on Submit button then the following takes place on the backend (t
 - Client requests another videoUrl
 ...
 
-Once all the sessions have been captured we can export the collected dataset.
+Once all the sessions have been captured you can export the collected dataset.
   
 
 
