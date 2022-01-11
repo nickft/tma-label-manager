@@ -133,9 +133,8 @@ Once the application launches and you connect to "localhost:8000" you will see a
 Once you click on Submit button then the following takes place on the backend (this is also explained in the workflow diagram):
 
 - Create a new entry for Training db table.
-- Get 100 streaming channel names.
 - Create N entries for Session db table where N is the number of videos that shall be included in the test. In each session entry, a bandwidth limiation value will be given so that all bandwidth limitations have equal representation (e.g. For 100 videos and 2 bandwidth limitations we have 50 sessions for each bandwidth)
-- Client requests a videoUrl
+- Client requests a videoUrl and then a new livestream is requested to the Twitch API ( with this approach we avoid offline livestreams in case we stored an static list of N sessions at the beginning of the experiment)
 - Client notifies the server that it starts playing a video (and client starts playing the video :). Client waits for 20 seconds and then starts capturing application data ).
 - Server starts capturing packets for the defined duration of the session.
 - Client - after the defined duration of the session has passed - sends a finishVideo request to the Server by providing the application data that it calculated (so far we simply return the number of counts)
